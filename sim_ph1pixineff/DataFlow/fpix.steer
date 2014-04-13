@@ -1,0 +1,30 @@
+#   Example of a FPIX simulation without pile-up generation
+#   Here the peak-lumi and signal/total cross sections have no meaning
+#   It appears in the output for information only
+
+# physics parameters
+#
+	MAX_EVENT = 200000;			// #events to be processed
+    CREATE_PILEUP = 0;          // No pileup generation. Takes signal events as given in SIGNAL_FILENAME
+	PEAK_LUMI = 0.7;			// peak luminosity in 10^34
+	SIGNAL_XSECTION = 1.5;		// signal (jet) X-section in mb
+	TOTAL_XSECTION = 80.0;		// MinBias X-section in mb
+	OUTPUT_FILENAME = FPIX_B115_7x1033_25ns.root	                 // Name of histo file
+	SIGNAL_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root    // For several signal files repeat these statement for each file
+#
+# Trigger and LHC parameters	
+#
+	WBC = 157;				    // L1 trigger latency
+	TRIGGER_RATE = 100;			// L1 trigger rate in kHz
+	BUNCH_SPACING = 25;	        // Using 25 ns bunch structure
+
+#
+# Detector parameters
+#
+	DETECTOR = FPIX
+	DISK = 1;
+	SIDE = 1;	
+	BLADE = 5;
+
+
+	
