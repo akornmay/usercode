@@ -40,7 +40,7 @@ void savehits() {
     bpixTree[i-1]->Branch("y", &y, "y/F");
   }
 
-  ifstream datafile ("./data/cleanout2000k.txt");
+  ifstream datafile ("/afs/cern.ch/work/t/threus/public/cleanout2000k.txt");
   
   string dummy_str;
   float dummy_fl;
