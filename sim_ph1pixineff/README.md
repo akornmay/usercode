@@ -7,6 +7,7 @@ Simulation is done in two steps:
 - output is in the same format as the input used by the /DataFlow package 
 
 code: geantTracks/savehits.c
+
 output: geantTracks/output_geant.root
 
 2) simulate hit inefficiency within the /DataFlow package
