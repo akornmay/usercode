@@ -4,6 +4,7 @@
 #include <TRandom3.h>
 #include <TFile.h>
 #include <TH1I.h>
+#include <TH1F.h>
 #include <TH2I.h>
 #include <TProfile.h>
 #include <TString.h>
@@ -73,7 +74,8 @@ TH2I *ineffhits;
 TH2I *allclusters_ev , *effclusters_ev;
 TH2I *ExtTokenWait, *IntTokenWait, *DcolTokenWait, *DCTokenWait;
 TH1I *DBSize, *TSSize;
-TProfile *eff, *effflux, *effhitrate;
+TProfile *eff, *effflux, *effhitrate, *effflux_hits;
+TProfile *inefftype[6];
 bool WriteHisto;
 TString HistoFileName;
 

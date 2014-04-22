@@ -31,9 +31,10 @@ void DoubleColumn::AddHit(pxhit &hit)
    stat.total_hits++;
    if(n_reset==0 && RO_Mode) {
       stat.ro_Wait++;
-      printf("FILL: n_reset==0 && RO_Mode +1 \n" );
+      //printf("FILL: n_reset==0 && RO_Mode +1 \n" );
       ineffhits->Fill( hit.mycol , hit.myrow );
       hit.ineff = true;
+      hit.inefftype = 1; // 1 = ro_Wait
       return;
    }
    pixiter iHit;
@@ -41,8 +42,9 @@ void DoubleColumn::AddHit(pxhit &hit)
       if(iHit->row==hit.row) {                   // pixel overwrite
 	stat.px_overwrite++;
 	ineffhits->Fill( hit.mycol , hit.myrow );
-	printf("FILL: iHit->row==hit.row \n");
+	//printf("FILL: iHit->row==hit.row \n");
 	hit.ineff = true;
+	hit.inefftype = 2; // 1 = ro_Wait, 2 = px_overwrite
 	return;
       }
    }
@@ -59,22 +61,25 @@ void DoubleColumn::AddHit(pxhit &hit)
      stat.DB_overflow++;
       ineffhits->Fill( hit.mycol , hit.myrow );
       hit.ineff = true;
-      printf("FILL: DB_Full \n");
+      hit.inefftype = 3; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow
+      //printf("FILL: DB_Full \n");
       return;
    }
    if(n_reset>0) {                               // book keeping only
       stat.ro_Reset++;
       ineffhits->Fill( hit.mycol , hit.myrow );
       hit.ineff = true;
-      printf("FILL: stat.ro_Reset +1 [%i,%i]\n" , hit.mycol , hit.myrow );
+      hit.inefftype = 4; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset
+      //printf("FILL: stat.ro_Reset +1 [%i,%i]\n" , hit.mycol , hit.myrow );
       return;
    }
    if(TS_Full) {                                 // book keeping
       stat.TS_overflow++;
       pendinghits.push_back(hit);                // buffer full, cannot set timestamp yet
       hit.ineff = true;
+      hit.inefftype = 5; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
       ineffhits->Fill( hit.mycol , hit.myrow );
-      printf("FILL: TS_Full \n");
+      //printf("FILL: TS_Full \n");
       return;
    }
 
@@ -101,8 +106,9 @@ void DoubleColumn::AddHit(pxhit &hit)
       hit.wrongTS=true;
       hit.CD_Select=TrueCD;
       hit.ineff = true;
+      hit.inefftype = 6; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow, 6 = dcol_busy
       ineffhits->Fill( hit.mycol , hit.myrow );
-      printf("FILL: dcol_busy \n");
+      //printf("FILL: dcol_busy \n");
    } else {
       hit.wrongTS=false;                         // everything correct
       hit.CD_Select=CD_Select;                   // finally insert hit into pixel array
@@ -156,7 +162,7 @@ void DoubleColumn::Reset()
 	{
 	  iHit->ineff = true;
 	  ineffhits->Fill( iHit->mycol , iHit->myrow );
-	  printf("FILL: DoubleColumn::Reset !iHit->wrongTS , [%i,%i]\n" , iHit->mycol , iHit->myrow );
+	  //printf("FILL: DoubleColumn::Reset !iHit->wrongTS , [%i,%i]\n" , iHit->mycol , iHit->myrow );
 	  nPix++;
 	}
    }
@@ -164,10 +170,10 @@ void DoubleColumn::Reset()
    pendinghits.clear();
    if(RO_Mode) {
      stat.ro_Reset += nPix;
-     printf("FILL: RO_Mode stat.ro_Reset + %i , total now = %i \n" , nPix , stat.ro_Reset);
+     //printf("FILL: RO_Mode stat.ro_Reset + %i , total now = %i \n" , nPix , stat.ro_Reset);
    } else {
      stat.DB_overflow+=nPix;
-     printf("FILL: stat.DB_overflow \n");
+     //printf("FILL: stat.DB_overflow \n");
    }
    NewEvent = true;
 
@@ -250,7 +256,7 @@ int DataBuffer::Reset()	                         // clears DataBuffer and return
        if(!hits[iRead++].wrongTS) {
 	 hits[iRead-1].ineff = true;
 	 ineffhits->Fill( hits[iRead-1].mycol , hits[iRead-1].myrow );
-	 printf("FILL: DataBuffer::Reset() [%i,%i] \n" , hits[iRead-1].mycol , hits[iRead-1].myrow );
+	 //printf("FILL: DataBuffer::Reset() [%i,%i] \n" , hits[iRead-1].mycol , hits[iRead-1].myrow );
 	 ntot++;
        }
        if(iRead==DATA_BUFFER_SIZE) iRead=0;

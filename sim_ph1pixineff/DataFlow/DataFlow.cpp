@@ -76,7 +76,28 @@ int main(int argc, char **argv)
 
       eff->Fill( event.clustersall.size() , event.getInefficiency() ); 
       effflux->Fill( event.flux , event.getInefficiency() ); 
+      effflux_hits->Fill( event.flux , event.getInefficiencyHit() ); 
       effhitrate->Fill( event.clustersall.size() / 0.64 * 40. , event.getInefficiency() ); 
+
+      //fill reasons
+      int reasons[6];
+      for (int x = 0; x < 6; x++ )
+	reasons[x] = 0;
+
+      int whichvec = -1;
+      
+      for ( int x = 0; x < 4; x++ )
+	if ( event.hits[x].size() > 0 )
+	  {
+	    whichvec = x;
+	    break;
+	  }
+
+      for (int x = 0; x < event.hits[whichvec].size(); x++ )
+	reasons[ event.hits[whichvec][x].inefftype ]++;
+
+      for (int x = 0; x < 6; x++ )
+	inefftype[x]->Fill(event.flux , reasons[x] / event.hits[whichvec].size() );
 
 
       if (clk == 102 )
@@ -135,7 +156,14 @@ int main(int argc, char **argv)
 	   allclusters_ev->Write();
 	   effclusters_ev->Write();
 	   eff->Write();
+	   inefftype[0]->Write();
+	   inefftype[1]->Write();
+	   inefftype[2]->Write();
+	   inefftype[3]->Write();
+	   inefftype[4]->Write();
+	   inefftype[5]->Write();
 	   effflux->Write();
+	   effflux_hits->Write();
 	   effhitrate->Write();
 	   printf("ENTRIES:::: %i\n" , ineffhits->GetEntries());
 	   rotime->Write();
@@ -221,7 +249,14 @@ void Init(bool* EmptyBC)
       allclusters_ev = new TH2I("allclusters_ev","all clusters in a single event",52,0,52,80,0,80);
       effclusters_ev = new TH2I("effclusters_ev","eff clusters in a single event",52,0,52,80,0,80);
       eff = new TProfile("efficiency","efficiency", 30 , 0 , 30 );
-      effflux = new TProfile("efficiency_flux","efficiency", 50 , 0 , 1000 );
+      effflux = new TProfile("efficiency_flux","efficiency on clusters", 50 , 0 , 1000 );
+      effflux_hits = new TProfile("efficiency_flux_hits","efficiency on hits", 50 , 0 , 1000 );
+      inefftype[0] = new TProfile("inefftype0","efficient hits", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      inefftype[1] = new TProfile("inefftype1","inefficient hits: ro_Wait", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      inefftype[2] = new TProfile("inefftype2","inefficient hits: px_overwrite", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      inefftype[3] = new TProfile("inefftype3","inefficient hits: DB_overflow", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      inefftype[4] = new TProfile("inefftype4","inefficient hits: ro_Reset", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      inefftype[5] = new TProfile("inefftype5","inefficient hits: TS_overflow", 50 , 0 , 1000 ); //// 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
       effhitrate = new TProfile("efficiency_hitrate","efficiency", 50 , 0 , 1000 );
       DBSize=new TH1I("DB_occupancy","Data buffer occupancy",DATA_BUFFER_SIZE+1,
 		      -0.5,DATA_BUFFER_SIZE+0.5);

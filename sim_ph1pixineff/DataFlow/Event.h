@@ -22,6 +22,7 @@ class pxhit {
    double pulseHeight;
    float flux;
    bool wrongTS;
+   int inefftype; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
    bool operator < (const pxhit& b)const{
      long aa=roc*1000+dcol;
      long bb=b.roc*1000+b.dcol;
@@ -31,6 +32,7 @@ class pxhit {
    pxhit()
      {
        ineff = false;
+       inefftype = 0;
      }
 };
 
@@ -54,6 +56,29 @@ public:
        {
 	 //printf ("CLUSTER EFF = %f : %i / %i\n" , (float)clustersafter.size() / clustersall.size() , clustersafter.size() , clustersall.size() );
 	 return (float)clustersafter.size() / clustersall.size();
+       }
+     else
+       return 1;
+   }
+
+   double getInefficiencyHit()
+   {
+     hit_vector myhits;
+
+     for ( int i = 0; i < 4; i++ )
+       if ( hits[i].size() > 0 )
+	 {
+	   myhits = hits[i];
+	   break;
+	 }
+
+     if ( myhits.size() > 0 )
+       {
+	 int eff_hits = 0;
+	 for ( int i = 0; i < myhits.size(); i++)
+	   if ( !myhits[i].ineff )
+	     eff_hits++;
+	 return (float)eff_hits / myhits.size();
        }
      else
        return 1;
