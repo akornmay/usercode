@@ -59,19 +59,17 @@ void savehits() {
       //float meanFlux = 1000 * random->Rndm(); //Mhz/cm2
       //float meanHits =  meanFlux / 40. * 0.64;
 
-      //float meanHits = random->Exp(2);
-      float meanHits = random->Exp(5);
+      float meanHits = random->Exp(2);
       float meanFlux = meanHits * 40. / 0.64;
 
       int meanhitRate = (int) meanFlux;
       int hitsInEvent;
-
       /*
       if (meanhitRate > 50)
 	hitsInEvent = random->PoissonD(meanHits);
       else
 	(random->Uniform(1.0) > meanhitRate / 100. ) ? hitsInEvent = 0 : hitsInEvent = 1 ;
-*/
+      */
       hitsInEvent = (int) meanHits;
       if ( hitsInEvent == 0 )
 	hitsInEvent = 1;
