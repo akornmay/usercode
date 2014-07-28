@@ -39,3 +39,10 @@
 #
 	
 #	RESETINTERVAL = 0						//send a periodic resest every XXX clock cycles, 0: no reset send
+
+
+#
+# Pixel clock spread
+#
+	PIX_SIGMA = 1.7							//Pixel clock spread (in ns)
+	DET_SPACING = 5							//Distance between Det (in cm)

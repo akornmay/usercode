@@ -2,8 +2,9 @@
 
 CC = g++
 
-CFLAGS  = -g -Wno-deprecated
-#CFLAGS  = -O3 -Wno-deprecated -funroll-loops 
+#CFLAGS  = -g -Wno-deprecated -Wl,-no-as-needed
+CFLAGS  = -O3 -g -Wno-deprecated -Wl,-no-as-needed
+#CFLAGS  = -O3 -Wno-deprecated -funroll-loops
 LDFLAGS = -L/usr/local/lib
 
 OBJ 	= DoubleColumn.cpp ROC.cpp DataFlow.cpp Module.cpp Event.cpp EventReader.cpp TBM.cpp	

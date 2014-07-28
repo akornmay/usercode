@@ -91,6 +91,7 @@ void RootReader::ReadEvent(Event &event)
 {	
    int nSignal=1;   
    int nPileUp=0;
+
    if(CreatePileUp){
       nSignal=rndm.Poisson(E_Signal);            // number of Signal events per BC (poisson distributed)
       nPileUp=rndm.Poisson(E_PileUp)-nSignal;    // number of MinBias events per BC (poisson distributed)

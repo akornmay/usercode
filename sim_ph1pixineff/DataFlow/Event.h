@@ -10,6 +10,8 @@
 
 class pxhit {
  public:
+   double phase;
+   double evtPhase;
    long timeStamp; 
    bool trigger;
    int roc;

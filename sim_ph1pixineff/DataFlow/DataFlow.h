@@ -37,6 +37,9 @@ bool CreatePileUp;
 int BUNCH_SPACING;
 int ALL_BUNCHES_FILLED;
 
+double PIX_SIGMA;				//Spread of pixel clock (in ns)
+double DET_SPACING;				//distance between det for phase assignment
+
 //
 // module and ROC settings
 //
@@ -55,18 +58,20 @@ void Init(bool* EmptyBC);
 void ReadSettings(char* fileName);
 void FillHisto(hit_vector &hits, int trigger);
 void WriteHits();
-
+bool main_phaseOK(double phase);
 //
 // variable declarations
 //
 
 const std::string SOFTWARE_VERSION="V2.0   23-Aug-2012   no TAG";
 Event event;
+Event * nextEvent;
+Event * nextNextEvent;
 int layer,module[4];
 long clk;
 ofstream hitFile;
 TFile *histoFile;
-TH1I *h1, *h2, *h3, *h4, *h5;
+TH1 *h1, *h2, *h3, *h4, *h5, *h6, *h7, *h8;
 TH1I *g1, *g2, *g3, *g4, *g5;
 TH1I *rodelay, *rotime, *eventsize;
 TH2I *allhits;

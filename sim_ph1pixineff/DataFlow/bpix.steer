@@ -12,7 +12,7 @@
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
 	OUTPUT_FILENAME = Xray.root	                                 // Name of histo file
-	SIGNAL_FILENAME = /home/kaestli/data/events-200.root             // File with signal hits.  
+	SIGNAL_FILENAME = output_geant.root		                 // File with signal hits.  
         MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
 #                                      				         // For several signal and/or MinBias files 
 #                                                                        //repeat these statements for each file
@@ -26,10 +26,14 @@
 # Detector parameters
 #
 	DETECTOR = BPIX
-	LAYER = 1;	
-	LADDER = 1;
-	MIN_MODULE = 1;
-	MAX_MODULE = 1;
+	LAYER = 2;	
+	LADDER = 2;
+	MIN_MODULE = 3;
+	MAX_MODULE = 3;
 
 
-	
+#
+# Pixel clock spread
+#
+	PIX_SIGMA = 1.7							//Pixel clock spread (in ns)
+	DET_SPACING = 5							//Distance between Det (in cm)
