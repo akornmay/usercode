@@ -1,4 +1,5 @@
 #include "Event.h"
+#include <cmath>
 
 void Event::New(long clk, int trg)
 {

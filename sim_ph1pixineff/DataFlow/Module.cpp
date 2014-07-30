@@ -4,7 +4,10 @@
 #include "CommonDefs.h"
 #include "TH1I.h"
 #include "TH2I.h"
-
+#include "TMath.h"
+#include "TF1.h"
+#include "TCanvas.h"
+#include "TGraph.h"
 using namespace std;
 
 long ro_time;
@@ -12,7 +15,17 @@ long ro_time;
 Module::Module()
 {
    ROCs.resize(CHIPS_PER_MODULE);
-	TBMs.resize(LINKS_PER_MODULE);
+   TBMs.resize(LINKS_PER_MODULE);
+   clkDist = new double[2501];
+   
+   TF1 * clkFunc = new TF1("clkFunc","0.5*(TMath::Erf((x-[0])/(sqrt(2)*[1]))-TMath::Erf((x-[2])/(sqrt(2)*[1])))",0,25);
+   clkFunc->SetParameters(-12.5,PIX_SIGMA,12.5);
+   for(int i=0; i<2501; i++){
+       clkDist[i]=(*clkFunc)(i/100.);
+   }
+   rndPhase=new TRandom3(46644);
+   delete clkFunc;
+
 }
 
 
@@ -91,4 +104,23 @@ void Module::StatOut()
 
    cout << endl;
 
+}
+
+int Module::GetBC(double phase)
+{
+    int toReturn=0;
+    if(phase<0){
+	phase+=25;
+	toReturn--;
+    }
+    if(phase>25){
+	phase-=25;
+	toReturn++;
+    }
+    if(phase>25 || phase <0){cerr<<"wrong phase ("<<phase<<") !"<<endl; return(0);}
+    double p=clkDist[(int)(phase*100)];
+    if(p>1-1e-6){return(toReturn);}
+    if(p<1e-6){return(toReturn+1);}
+    if(rndPhase->Rndm()>p){return(toReturn+1);}
+    else{return(toReturn);}
 }

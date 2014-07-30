@@ -1,5 +1,6 @@
 #include "DataFlow.h"
 #include "CommonDefs.h"
+#include "TCanvas.h"
 #include <cstdlib>
 #include <vector>
 
@@ -37,38 +38,49 @@ int main(int argc, char **argv)
    RootReader EventReader;
    EventReader.Init(layer);
 
-
+   double phase=0;					//Phase between Fermi and LHC clock
+   bool newBC=true;
+   int old_trig=0;
+   
+   nextEvent = new Event;
+   nextEvent->New(2,false);
+   nextNextEvent = new Event;
+   nextNextEvent->New(3,false);
+      
 // *****************************************************************************************************
 //                   main loop over bunch crossings
 // *****************************************************************************************************	
-
+   
+   
+   
    for(clk=1; clk< MAX_EVENT; clk++){
-     //printf("new event\n");
       if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
       else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
       else if(!(clk %50000)) cout <<"Processing event number "<< clk << " ....."<<endl;
 
-      if(last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
-		
+      if(newBC && last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
+
       int trigger=0;
-      if(last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be triggered
+      if(newBC && last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be triggered
 	         trigger=1;
 	         ntrig++;
 	         last_trigger=MINIMAL_TRIGGER_GAP;
       }
-      event.New(clk, trigger);			     	           // initialize new event
+      if (newBC)old_trig=trigger;
+
+      event.New(clk, trigger);			     	         // initialize new event
       EventReader.ReadEvent(event);		                 // read hits from input file(s)
-
-      if(WriteHisto){
-            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(event.hits[i], trigger);
+      
+      if (newBC){
+	if(WriteHisto){
+            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(nextEvent->hits[i], old_trig);	//Saving new events with new trigger
+	}
+	delete nextEvent;
+	nextEvent = nextNextEvent;
+	nextNextEvent = new Event;
+	nextNextEvent->New(clk+2,false);					//Generating event for next clk. trigger added later.
       }
-      iMod=Modules.begin();
-      for(; iMod!=Modules.end(); iMod++)
-                iMod->AddHits(event);                      // add hits to Module
-
-      iMod=Modules.begin();
-      for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
-
+      
       //all clusters
       event.clusterize( false );
       //only efficient clusters
@@ -122,6 +134,71 @@ int main(int argc, char **argv)
 
 	}
 
+      
+      
+      
+      
+      
+      
+      int nHits=event.hits[MIN_MOD-1].size();
+      double * hPhase= new double[nHits];
+      for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
+      for (int j=MIN_MOD-1; j<MAX_MOD; j++){					//Sort in BC from phase
+	  int nHitsToProcess = nHits;
+	for(int i=nHits-1; i>-1; i--){
+		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;
+		    double ep = phase+j*DET_SPACING*1./29.98;
+		    int BC_sort=Modules[j-MIN_MOD+1].GetBC(hp);
+		    if(BC_sort==0){
+			event.hits[j][i].phase=hp+12.5;				//Save phase for hit
+			event.hits[j][i].evtPhase=ep+12.5;	
+		    }
+		    else if(BC_sort==1){
+			    event.hits[j][i].phase=hp-12.5;
+			    event.hits[j][i].evtPhase=ep-12.5;
+			    nextEvent->hits[j].push_back(event.hits[j][i]);		//Change phase and move to next BC
+			    event.hits[j].erase(event.hits[j].begin()+i);
+		    }
+		    else if(BC_sort==2){
+			    event.hits[j][i].phase=hp-37.5;
+			    event.hits[j][i].evtPhase=ep-37.5;
+			    nextNextEvent->hits[j].push_back(event.hits[j][i]);		//Change phase and move to next/next BC
+			    event.hits[j].erase(event.hits[j].begin()+i);
+		    }
+		    else{
+			
+			    cerr<<"Bad event #BC = "<<BC_sort<<" ignored"<<endl;   
+			    event.hits[j].erase(event.hits[j].begin()+i);
+		    }
+	}
+      }
+		
+     
+		
+
+      if(WriteHisto){
+            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(event.hits[i], old_trig);
+      }
+      iMod=Modules.begin();
+      for(; iMod!=Modules.end(); iMod++)
+                iMod->AddHits(event);  // add hits to Module
+
+     phase+=18.8;
+      if(phase>25){
+	newBC=true;
+	phase-=25;
+	
+	iMod=Modules.begin();
+	for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
+
+	iMod=Modules.begin();
+	for(; iMod!=Modules.end(); iMod++)
+                iMod->AddHits(*nextEvent);  // add hits to Module
+      }
+      else{
+	newBC=false;
+	clk--;
+      }
    }					       	                                // end of main loop
 
 // *****************************************************************************************************
@@ -146,6 +223,9 @@ int main(int argc, char **argv)
 	   h3->Write();
 	   h4->Write();
 	   h5->Write();
+	   h6->Write();
+	   h7->Write();
+	   h8->Write();
 	   g1->Write();
 	   g2->Write();
 	   g3->Write();
@@ -182,6 +262,9 @@ int main(int argc, char **argv)
 	   delete h3;
 	   delete h4;
 	   delete h5;
+	   delete h6;
+	   delete h7;
+	   delete h8;
 	   delete g1;
 	   delete g2;
 	   delete g3;
@@ -235,6 +318,9 @@ void Init(bool* EmptyBC)
       h3=new TH1I("px_per_dcol","Pixels per hit dcol",31,-0.5,30.5);	
       h4=new TH1I("dc_per_roc","Dcols per hit ROC",25,0.5,26.5);
       h5=new TH1I("roc_per_mod","ROCs per hit module",15,0.5,16.5);
+      h6=new TH1D("hits_per_phase","Hits per phase (ns)",2000,-100,100);
+      h7=new TH1D("rejected_per_phase","rejected hits per phase (ns)",260,0,26);
+      h8=new TH1D("hits_relative_phase","time between hit and fermi clock (ns)",520,-26,26);
       g1=new TH1I("px_per_mod_per_tg","Pixels per hit module per trigger",401,-0.5,400.5);	
       g2=new TH1I("px_per_roc_per_tg","Pixels per hit RO per trigger",81,-0.5,80.5);
       g3=new TH1I("px_per_dcol_per_tg","Pixels per hit dcol per trigger",31,-0.5,30.5);	
@@ -285,6 +371,13 @@ void FillHisto(hit_vector &hits, int trigger)
 	  }
 	  return;
 	}
+	
+	for(int i=0; i<hits.size(); i++){
+	  h6->Fill(hits[i].phase);
+	  h8->Fill(hits[i].phase-hits[i].evtPhase);
+// 	  if(!main_phaseOK(hits[i].phase)){h7->Fill(hits[i].phase);}
+	}
+	  
 	int roc_counters[CHIPS_PER_MODULE];
 	for(int i=0; i<CHIPS_PER_MODULE; i++)roc_counters[i]=0;
 	int dcol_counters[CHIPS_PER_MODULE][DCOLS_PER_ROC];
@@ -354,7 +447,8 @@ void ReadSettings(char* fileName)
 
    if(fileName[0]=='\0') {
 		cout<<"Using default parameters"<<endl<<endl;
-		SignalFileNames.push_back("/home/kaestli/data/Phase1_1_1034.root");
+		SignalFileNames.push_back("InputFile.root");
+		//SignalFileNames.push_back("/home/kaestli/data/Phase1_1_1034.root");
 	}
 	else{  
 		ifstream is(fileName,std::ios::in);
@@ -385,6 +479,14 @@ void ReadSettings(char* fileName)
 				TRIGGER_RATE=atof(Value.c_str());
 				continue;
 			}
+			if(Parameter=="PIX_SIGMA"){
+				PIX_SIGMA=atof(Value.c_str());
+				continue;
+			}
+			if(Parameter=="DET_SPACING"){
+				DET_SPACING=atof(Value.c_str());
+				continue;
+			}
 			if(Parameter=="SIGNAL_XSECTION"){
 				SIGNAL_XSECTION=atof(Value.c_str());
 				continue;
@@ -400,9 +502,9 @@ void ReadSettings(char* fileName)
 			if(Parameter=="BUNCH_SPACING"){
 				BUNCH_SPACING=atoi(Value.c_str());
 				if(BUNCH_SPACING%25 !=0){
-				  cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
-				  exit(0);
-				}
+               cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
+               exit(0);
+            }
 				continue;
 			}
 			if(Parameter=="WBC"){
@@ -562,3 +664,4 @@ void ReadSettings(char* fileName)
     cout <<endl<<endl;
 }
 
+bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}

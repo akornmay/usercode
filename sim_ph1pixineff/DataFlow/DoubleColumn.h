@@ -193,6 +193,13 @@ public:
     * Insert the time stamp timeStamp into TS buffer. Checks if column drain 
     * is busy (3rd hit) or double column is blocked (TS or DB full)
     */	
+   
+  bool phaseOK(double phase);
+  /** @brief Checks the phase of the event
+    * 
+    * Returns 1 if phase is between 9.5 and 14 ns, 0 if not.
+    */
+   
    int SetTS(long &timeStamp, bool &tg, int &cd);
 	
    /** @brief Reset the double column

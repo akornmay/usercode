@@ -8,6 +8,8 @@
 #include "Event.h"
 #include <vector>
 #include <list>
+#include <TRandom3.h>
+
 
 typedef std::vector<ROC> roc_vector;
 typedef roc_vector::iterator roc_iter;
@@ -56,8 +58,20 @@ public:
 	 */
 	void StatOut();
 	
+	int GetBC(double phase);
+	
+	/**
+	 * @brief Get BC where hit occured
+	 * 
+	 * Returns 0,1 or 2 corresponding to the BC where the hit should be saved.
+	 * 
+	 */
+	
+
 
 private:
+    TRandom3 * rndPhase;			///< Random number generator used to assign bunch crossing
+    double * clkDist;				///< Distribution used to assign bunch crossing
 	 roc_vector ROCs;                          ///< Vector of all ROCs per module
 	 tbm_vector TBMs;                          ///< Vector of all TBM cores per module
     long int bx_counter;                      ///< Bunch crossing counter

@@ -37,6 +37,12 @@ void DoubleColumn::AddHit(pxhit &hit)
       hit.inefftype = 1; // 1 = ro_Wait
       return;
    }
+   
+   if (!phaseOK(hit.phase)){
+      stat.badPhase++;
+      return;
+   }
+   
    pixiter iHit;
    for(iHit=hits.begin(); iHit!=hits.end(); iHit++){
       if(iHit->row==hit.row) {                   // pixel overwrite
@@ -286,4 +292,11 @@ bool DataBuffer::Readout(long TS, pxhit &hit)
    hit=hits[iRead++];
    if(iRead==DATA_BUFFER_SIZE) iRead=0;
    return true;
+}
+
+bool DoubleColumn::phaseOK(double phase){
+  return(1);
+    
+  //return(phase>9.5 && phase<14);
+  
 }

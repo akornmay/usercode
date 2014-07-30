@@ -16,7 +16,7 @@ class statistics
 public:
 	double inefficiency(){
 		double ineff=(double)(px_overwrite+dcol_busy+TBM_busy+
-				      TS_overflow+DB_overflow+ro_Wait+ro_Reset);
+				      TS_overflow+DB_overflow+ro_Wait+ro_Reset+badPhase);
 		return ineff!=0 ? ineff/(double) total_hits : 0;
 	}
 	
@@ -31,6 +31,7 @@ public:
 		ro_Reset=0;
 		px_fluence=0.;
 		px_ro=0.;
+		badPhase=0;
 	}
 	
 	statistics& operator=(statistics const & a){
@@ -44,6 +45,7 @@ public:
 		ro_Reset=a.ro_Reset;
 		px_fluence=a.px_fluence;
 		px_ro=a.px_ro;
+		badPhase=a.badPhase;
 		return *this;
 	}
 	
@@ -58,6 +60,7 @@ public:
 		ro_Reset+=a.ro_Reset;
 		px_fluence+=a.px_fluence;
 		px_ro+=a.px_ro;
+		badPhase+=a.badPhase;
 		return *this;
 	}
 	
@@ -65,6 +68,7 @@ public:
 		cout << std::fixed;
 		cout << "Statistics for " << text << endl<<endl;
 		cout << "Total number of hits:      "<<total_hits<<endl;
+		Print("Bad phase:                   ", badPhase);
 		Print("Pixel overwrite:             ", px_overwrite);
 		Print("Column drain busy (3rd hit): ", dcol_busy);
 		if(TBM_busy>0){
@@ -101,6 +105,7 @@ public:
 	unsigned long ro_Reset;
 	double px_fluence;
 	double px_ro;
+	unsigned long badPhase;
 	
 };
 
