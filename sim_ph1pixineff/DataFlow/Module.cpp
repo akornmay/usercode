@@ -76,7 +76,8 @@ void Module::Clock()
 void Module::StatOut()
 {
 	char txt[50];
-	statistics stat[CHIPS_PER_MODULE]; 
+	//	statistics stat[CHIPS_PER_MODULE]; 
+	statistics stat[16];
 	statistics mod_stat;
 	mod_stat.Reset();
 	int i=0;
