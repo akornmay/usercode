@@ -25,6 +25,7 @@
 	TRIGGER_RATE = 10;			                         // L1 trigger rate in kHz
 	BUNCH_SPACING = 25;	                                         // Using 50 ns bunch structure
 	ALL_BUNCHES_FILLED = 1						 // 1: all bunches are filled; 0: only certain bunches are filled 
+	TOKEN_DELAY = 30;						 // Defines the number of bx to wait between a trigger and the corresponding token to be send out
 #
 # Detector parameters
 #

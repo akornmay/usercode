@@ -47,8 +47,23 @@ const unsigned int ROC_BUFFER_SIZE(64);
 const int CONVERSION_TIME(4);
 
 //
+//HRBT settings
+//
+extern int TOKEN_DELAY;
+const int NUMBER_OF_TELESCOPES(1);
+const int CHIPS_PER_TELESCOPE(8);
+const int LINKS_PER_TELESCOPE(1);
+const unsigned int TELESCOPE_STACK_SIZE(16);
+
+
+//
 // readout format
 //
+
+const int TELESCOPE_HEADER_LENGTH(16);
+const int TELESCOPE_TRAILER_LENGTH(15);
+const int TELESCOPE_READOUT_GAP(0);
+
 
 const int TBM_HEADER_LENGTH(8);                         // TBM header length in LHC clocks
 const int TBM_TRAILER_LENGTH(8);                        // TBM trailer length in LHC clocks

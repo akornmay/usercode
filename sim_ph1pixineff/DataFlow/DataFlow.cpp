@@ -497,11 +497,15 @@ void ReadSettings(char* fileName)
 			}
 			if(Parameter=="PEAK_LUMI"){
 				PEAK_LUMI=atof(Value.c_str());
-							continue;
+				continue;
+			}
+			if(Parameter=="TOKEN_DELAY"){
+			        TOKEN_DELAY=atoi(Value.c_str());
+				continue;
 			}
 			if(Parameter=="BUNCH_SPACING"){
-				BUNCH_SPACING=atoi(Value.c_str());
-				if(BUNCH_SPACING%25 !=0){
+			  BUNCH_SPACING=atoi(Value.c_str());
+			  if(BUNCH_SPACING%25 !=0){
                cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
                exit(0);
             }

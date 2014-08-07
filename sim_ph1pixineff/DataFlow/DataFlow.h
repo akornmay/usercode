@@ -49,6 +49,11 @@ int CHIPS_PER_MODULE;
 int CHIPS_PER_LINK[2];
 
 //
+//HRBT settings
+//
+int TOKEN_DELAY;
+
+//
 // method declarations
 //
 
