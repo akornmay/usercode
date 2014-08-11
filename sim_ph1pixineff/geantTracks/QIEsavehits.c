@@ -27,17 +27,12 @@
 3.) run ./a.out 179540
 */
 
-double convert_el_to_adc(double energy, double p0, double p1, double p2, double p3, double xray_slope, double xray_offset){
 
-  double electrons = energy / 3.62;
-
-  //calculate the Vcal value for the xray calibration values 
-  double vcal = (electrons*1000. - xray_offset)/xray_slope;
+double convert_vcal_to_adc(double vcal, double p0, double p1, double p2, double p3){
 
   //use the tanh function defined by 3 parameters to convert the vcal to adc values
   double adc = (p3 + p2 * TMath::TanH(p0*vcal - p1));
 
-  // printf("#electrons %f: vcal %f: adc %f\n",electrons, vcal, adc);
 
   if(adc > 255.)
     {
@@ -53,40 +48,43 @@ double convert_el_to_adc(double energy, double p0, double p1, double p2, double 
 
 int main(int argc, char *argv[]) {
 
+  /*
+   * Converstion factors
+   */
+  
+  double xray_offset = -600. ;
+  double xray_slope = 50. ;
+  double ionisation_energy = 3.62; //[eV/e-]
 
   int runNumber = atoi(argv[1]);
 
-  short int col, row, adc;
-  short int ladder = 2;
-  short int mod = 3;
-  short int disk = 2;
-  short int blade = 2;
-  short int panel = 2;
+  int roc, col, row, adc, vcal;
+  double pulseHeight, energy;
   float flux;
   int eventNr = 0;
-  float energy , x , y , z;
+  float x , y , z;
 
   TRandom3 * random = new TRandom3();
 
   TFile *outputFile = new TFile("output_geant.root","UPDATE");
 
   //create the tree to store the data
-  TTree *bpixTree[3];
-
   char title[30];
-  for (int i=1; i<4; i++){
-    sprintf(title,"BPIX_Digis_Layer%1d",i);
-    bpixTree[i-1]= new TTree(title,title);
-    bpixTree[i-1]->Branch("Event", &eventNr, "Event/i");
-    bpixTree[i-1]->Branch("Ladder", &ladder, "Ladder/S");
-    bpixTree[i-1]->Branch("Module", &mod, "Module/S");
-    bpixTree[i-1]->Branch("adc", &adc, "adc/S");
-    bpixTree[i-1]->Branch("col", &col, "col/S");
-    bpixTree[i-1]->Branch("row", &row, "row/S");
-    bpixTree[i-1]->Branch("flux", &flux, "flux/F");
-    bpixTree[i-1]->Branch("x", &x, "x/F");
-    bpixTree[i-1]->Branch("y", &y, "y/F");
-  }
+  sprintf(title,"Telescope");
+  TTree *TelescopeTree = new TTree(title,title);;
+
+  //define the output tree
+  TelescopeTree->Branch("Event", &eventNr, "Event/i");
+  TelescopeTree->Branch("roc",&roc,"roc/I");
+  TelescopeTree->Branch("pulseHeight", &pulseHeight, "pulseHeight/D");
+  TelescopeTree->Branch("energy", &energy,"energy/D");
+  TelescopeTree->Branch("vcal", &vcal, "vcal/I");
+  TelescopeTree->Branch("col", &col, "col/I");
+  TelescopeTree->Branch("row", &row, "row/I");
+  TelescopeTree->Branch("flux", &flux, "flux/F");
+  TelescopeTree->Branch("x", &x, "x/F");
+  TelescopeTree->Branch("y", &y, "y/F");
+
 
   //ifstream datafile ("/afs/cern.ch/work/t/threus/public/cleanout2000k.txt");
   std::ifstream datafile ("/afs/cern.ch/work/a/akornmay/public/hugeTrackSample_cleanoutfull.dat");
@@ -241,31 +239,27 @@ int main(int argc, char *argv[]) {
 		      iss.str(line);
 		      iss >> dummy_str >> dummy_fl >> dummy_str >> dummy_fl >> dummy_str >> dummy_str >> energy >> dummy_str >> dummy_str >> x >> y >> z >> dummy_str;
 
-
-		      //	      if ( TMath::Abs ( z - planes[ plane ] ) < offset ) //only one plane is written out
-		      adc = (int)energy;
 		      spectrum->Fill(energy);
-		      
+
+		      vcal  = (energy / ionisation_energy * 1000. - xray_offset)/xray_slope;
 		      //adc = convert_el_to_adc(energy,+2.465504e-03, +9.631035e-01, +1.126552e+02, +1.439645e+02, 50., -600.);
-		      adc = convert_el_to_adc(energy,+3.122759e-03, +1.085111e+00, +1.036756e+02, +1.520615e+02, 50., -600.);
-		      spectrum_adc->Fill(adc);
+		      pulseHeight = convert_vcal_to_adc(vcal,+3.122759e-03, +1.085111e+00, +1.036756e+02, +1.520615e+02);
+		      spectrum_adc->Fill(pulseHeight);
 		      
 
-		      //phcal->SetPoint(graphcounter,((energy*1000.+600.)/50.),adc);
-		      //graphcounter++;
-		  
+		      		  
 		      
 		      //The data flow simulation differntiates the different ROCs by enlaring the number of COLs by 8 and the number of ROWs by 2
 		      //All hits of the 8 ROCs in the telescope are spread over (8*52)cols X (80)rows 
 		      
+		      roc = (int) (z/1.6+0.5) - 1;
 		      row = 80 / 2 + y / 0.01 ;
-		      col = (((int)(z/1.6 +0.5) -1)*52 )+ 52 / 2 + x / 0.015;
+		      col = 52 / 2 + x / 0.015;
 		      //		      col = 52 / 2 + x / 0.015;
 		      
 		      //printf("ROC %i Pixel (%i|%i)(%i) \n",(int)(z/1.6),adc,col,row);
 		      
-		      bpixTree[2]->Fill();
-		      //		  bpixTree[1]->Fill();
+		      TelescopeTree->Fill();
 		      
 		      
 		    }
@@ -279,10 +273,11 @@ int main(int argc, char *argv[]) {
 	}
       else
 	{
+	  roc = -1;
 	  adc = -1;
 	  row = -1;
 	  col = -1;
-	  bpixTree[2]->Fill();
+	  TelescopeTree->Fill();
 
 	}
 
@@ -294,15 +289,6 @@ int main(int argc, char *argv[]) {
   outputFile->Write();
   outputFile->Close();
 
-  /*
-  TFile* f = new TFile("file.root","RECREATE");
-  profile->Write();
-
-  spectrum->Write();
-
-  spectrum_adc->Write();
-
-  f->Close();*/
 }
 
 
