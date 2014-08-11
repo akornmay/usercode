@@ -46,3 +46,7 @@
 #
 	PIX_SIGMA = 1.7							//Pixel clock spread (in ns)
 	DET_SPACING = 5							//Distance between Det (in cm)
+	
+# Save param	
+	SAVE_TREE =  1							//save tree
+	PIX_TREE_FILE = ./treeFile.root					//File where tree will be saved

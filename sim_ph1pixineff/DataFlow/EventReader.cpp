@@ -123,6 +123,7 @@ void RootHits::GetHits(Event &event, int nEvents)
 	  hit.timeStamp=event.clock;
 	  hit.trigger=event.trigger;
 	  hit.pulseHeight=adc;
+	  hit.vcal=vcal;
 	  hit.roc=row<80 ? (int)(col/52) : (int)(15-(col/52));
 	  if(hit.roc>=CHIPS_PER_MODULE) continue;
 	  hit.row=row<80 ? row+(col%2)*80 : 159-row+(1-col%2)*80;
@@ -221,6 +222,7 @@ void RootHits::Init(int lr, std::string &name)
       HitTree->SetBranchAddress("Blade",&tree_ladder);
       HitTree->SetBranchAddress("Panel",&panel);
    }
+   HitTree->SetBranchAddress("vcal",&vcal);
    HitTree->SetBranchAddress("Module",&tree_module);
    HitTree->SetBranchAddress("Event",&tree_event);
    HitTree->SetBranchAddress("col",&col);

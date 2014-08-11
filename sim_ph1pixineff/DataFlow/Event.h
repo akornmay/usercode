@@ -25,6 +25,7 @@ class pxhit {
    float flux;
    bool wrongTS;
    int inefftype; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+   int vcal;
    bool operator < (const pxhit& b)const{
      long aa=roc*1000+dcol;
      long bb=b.roc*1000+b.dcol;

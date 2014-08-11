@@ -40,6 +40,7 @@ int ALL_BUNCHES_FILLED;
 double PIX_SIGMA;				//Spread of pixel clock (in ns)
 double DET_SPACING;				//distance between det for phase assignment
 
+bool SAVE_TREE;
 //
 // module and ROC settings
 //
@@ -67,6 +68,7 @@ const std::string SOFTWARE_VERSION="V2.0   23-Aug-2012   no TAG";
 Event event;
 Event * nextEvent;
 Event * nextNextEvent;
+Event eventToProcess;
 int layer,module[4];
 long clk;
 ofstream hitFile;
@@ -83,5 +85,37 @@ TProfile *eff, *effflux, *effhitrate, *effflux_hits;
 TProfile *inefftype[6];
 bool WriteHisto;
 TString HistoFileName;
+
+
+
+
+//Related to data saving :
+
+void initSave();
+void endSave();
+void saveHits(hit_vector * hits);
+void saveHit(pxhit * hit);
+
+TTree * pixTree;					//Tree containing all detected hits
+TFile * pixFile;					//File containing previous tree
+
+string PIX_TREE_FILE;					//Name of the file where data will be saved
+
+/** \struct pixStruct
+ *  Structure used to save hits to TTree
+ */
+
+
+struct pixStruct{
+    int TS;
+    int roc;
+    int mycol;
+    int myrow;
+    int vcal;
+    double pulseHeight;
+    double phase;
+};
+
+pixStruct pStruct;
 
 #endif /*DATAFLOW_H_*/

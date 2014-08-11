@@ -194,7 +194,10 @@ void DoubleColumn::Reset()
 bool DoubleColumn::Readout(long timeStamp, pxhit &hit)
 {
    if(RO_Mode && (RO_TS==timeStamp)){
-      if(DB.Readout(timeStamp, hit)) return true;
+      if(DB.Readout(timeStamp, hit)){
+	  saveHit(&hit);
+	  return true;
+      }
       else {
          n_reset=3;
          return false;
