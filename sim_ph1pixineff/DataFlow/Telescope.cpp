@@ -10,12 +10,12 @@
 #include "TGraph.h"
 using namespace std;
 
-long ro_time;
+//long ro_time;
 
 Telescope::Telescope()
 {
    ROCs.resize(CHIPS_PER_TELESCOPE);
-   TBMs.resize(LINKS_PER_TELESCOPE);
+   HRTBs.resize(LINKS_PER_TELESCOPE);
    clkDist = new double[2501];
    
    TF1 * clkFunc = new TF1("clkFunc","0.5*(TMath::Erf((x-[0])/(sqrt(2)*[1]))-TMath::Erf((x-[2])/(sqrt(2)*[1])))",0,25);
@@ -44,7 +44,7 @@ void Telescope::Init(int id) {
 Telescope::~Telescope()
 {
 	ROCs.clear();
-	TBMs.clear();
+	HRTBs.clear();
 }
 
 
@@ -91,12 +91,12 @@ void Telescope::StatOut()
    i=1;
    cout <<endl;
 
-   for(tbm_iter iTBM=TBMs.begin(); iTBM!=TBMs.end(); iTBM++){
+   for(hrtb_iter iHRTB=HRTBs.begin(); iHRTB!=HRTBs.end(); iHRTB++){
       cout << "Link number "<<i++<<":"<<endl;
       cout << "     Pixel readout rate = "
-                           <<(double)iTBM->ro_pix/((double) MAX_EVENT*25e-3)<<" MPix/s"<<endl;
+                           <<(double)iHRTB->ro_pix/((double) MAX_EVENT*25e-3)<<" MPix/s"<<endl;
       cout << "     Occupancy =          "
-                           <<((double)iTBM->ro_clocks/(double) MAX_EVENT)*100<<" %"<<endl;
+                           <<((double)iHRTB->ro_clocks/(double) MAX_EVENT)*100<<" %"<<endl;
    }
 
    cout << endl;

@@ -7,8 +7,8 @@ CFLAGS  = -g -Wno-deprecated
 #CFLAGS  = -O3 -Wno-deprecated -funroll-loops
 LDFLAGS = -L/usr/local/lib
 
-OBJ 	= DoubleColumn.cpp ROC.cpp DataFlow.cpp Module.cpp Event.cpp EventReader.cpp TBM.cpp	
-HEAD    = DoubleColumn.h CommonDefs.h ROC.h Module.h Statistics.h DataFlow.h Event.h EventReader.h TBM.h
+OBJ 	= DoubleColumn.cpp ROC.cpp DataFlow.cpp Module.cpp Event.cpp EventReader.cpp TBM.cpp HRTB.cpp Telescope.cpp
+HEAD    = DoubleColumn.h CommonDefs.h ROC.h Module.h Statistics.h DataFlow.h Event.h EventReader.h TBM.h HRTB.h Telescope.h
 
 ROOTCFLAGS    =$(shell $(ROOTSYS)/bin/root-config --cflags)
 ROOTLIBS      =$(shell $(ROOTSYS)/bin/root-config --libs)

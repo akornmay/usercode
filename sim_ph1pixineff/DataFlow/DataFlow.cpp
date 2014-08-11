@@ -24,15 +24,18 @@ int main(int argc, char **argv)
    TRandom3 rndm(93657);		         // random number generator
 
    layer = LAYER;			               // analyze layer number LAYER as specified in steering file
-   std::vector<Module> Modules;	      // Modules to be analyzed
-   std::vector<Module>::iterator iMod;
-   Modules.resize(MAX_MOD-MIN_MOD+1);
-   int i=MIN_MOD-1;
-   for(iMod=Modules.begin(); iMod!=Modules.end(); iMod++) {
-      iMod->Init(i++);
-   }
    bool EmptyBC[3564];			         // LHC bunch structure (true=empty, false=filled)
    Init(EmptyBC);			               // open hit files and create LHC bunch structure
+
+
+   std::vector<Telescope> Telescopes;
+   std::vector<Telescope>::iterator iTel;
+   Telescopes.resize(NUMBER_OF_TELESCOPES);
+   int j = 0;
+   for(iTel=Telescopes.begin(); iTel!=Telescopes.end(); iTel++)
+     {
+       iTel->Init(j++);
+     }
 
 
    RootReader EventReader;
@@ -73,7 +76,7 @@ int main(int argc, char **argv)
       
       if (newBC){
 	if(WriteHisto){
-            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(nextEvent->hits[i], old_trig);	//Saving new events with new trigger
+            for(int i=0; i<NUMBER_OF_TELESCOPES; i++)    FillHisto(nextEvent->hits[i], old_trig);	//Saving new events with new trigger
 	}
 	delete nextEvent;
 	nextEvent = nextNextEvent;
@@ -148,7 +151,7 @@ int main(int argc, char **argv)
 	for(int i=nHits-1; i>-1; i--){
 		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;
 		    double ep = phase+j*DET_SPACING*1./29.98;
-		    int BC_sort=Modules[j-MIN_MOD+1].GetBC(hp);
+		    int BC_sort=Telescopes[0].GetBC(hp);
 		    if(BC_sort==0){
 			event.hits[j][i].phase=hp+12.5;				//Save phase for hit
 			event.hits[j][i].evtPhase=ep+12.5;	
@@ -177,23 +180,23 @@ int main(int argc, char **argv)
 		
 
       if(WriteHisto){
-            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(event.hits[i], old_trig);
+            for(int i=0; i<NUMBER_OF_TELESCOPES; i++)    FillHisto(event.hits[i], old_trig);
       }
-      iMod=Modules.begin();
-      for(; iMod!=Modules.end(); iMod++)
-                iMod->AddHits(event);  // add hits to Module
+      iTel=Telescopes.begin();
+      for(; iTel!=Telescopes.end(); iTel++)
+                iTel->AddHits(event);  // add hits to Module
 
      phase+=18.8;
       if(phase>25){
 	newBC=true;
 	phase-=25;
 	
-	iMod=Modules.begin();
-	for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
+	iTel=Telescopes.begin();
+	for(; iTel!=Telescopes.end(); iTel++) iTel->Clock();    // advance clock in module
 
-	iMod=Modules.begin();
-	for(; iMod!=Modules.end(); iMod++)
-                iMod->AddHits(*nextEvent);  // add hits to Module
+	iTel=Telescopes.begin();
+	for(; iTel!=Telescopes.end(); iTel++)
+                iTel->AddHits(*nextEvent);  // add hits to Module
       }
       else{
 	newBC=false;
@@ -209,8 +212,8 @@ int main(int argc, char **argv)
    cout << "**********************************************"<<endl;
    cout << "*            Statistics output               *"<<endl;
    cout << "**********************************************"<<endl<< endl;
-   iMod=Modules.begin();
-   for(; iMod!=Modules.end(); iMod++) iMod->StatOut();
+   iTel=Telescopes.begin();
+   for(; iTel!=Telescopes.end(); iTel++) iTel->StatOut();
    cout << "Time simulated:           "<<MAX_EVENT*25e-6<<" ms"<<endl;
    cout << "Total number of triggers: "<<ntrig <<"  ,  rate= "
 		<<(double)ntrig/(double)MAX_EVENT*40000<<" kHz"<<endl;
@@ -245,7 +248,7 @@ int main(int argc, char **argv)
 	   effflux->Write();
 	   effflux_hits->Write();
 	   effhitrate->Write();
-	   printf("ENTRIES:::: %i\n" , ineffhits->GetEntries());
+	   printf("ENTRIES:::: %i\n" , (int)ineffhits->GetEntries());
 	   rotime->Write();
 	   rodelay->Write();
 	   eventsize->Write();
@@ -378,10 +381,10 @@ void FillHisto(hit_vector &hits, int trigger)
 // 	  if(!main_phaseOK(hits[i].phase)){h7->Fill(hits[i].phase);}
 	}
 	  
-	int roc_counters[CHIPS_PER_MODULE];
-	for(int i=0; i<CHIPS_PER_MODULE; i++)roc_counters[i]=0;
-	int dcol_counters[CHIPS_PER_MODULE][DCOLS_PER_ROC];
-	for(int i=0; i<CHIPS_PER_MODULE; i++){
+	int roc_counters[CHIPS_PER_TELESCOPE];
+	for(int i=0; i<CHIPS_PER_TELESCOPE; i++)roc_counters[i]=0;
+	int dcol_counters[CHIPS_PER_TELESCOPE][DCOLS_PER_ROC];
+	for(int i=0; i<CHIPS_PER_TELESCOPE; i++){
 		for(int j=0; j<DCOLS_PER_ROC; j++) dcol_counters[i][j]=0;
 	}
 	for(hit_iterator iHit=hits.begin(); iHit!=hits.end(); iHit++){
@@ -390,11 +393,11 @@ void FillHisto(hit_vector &hits, int trigger)
 	}
 	h1->Fill(hits.size());
 	if(trigger) g1->Fill(hits.size());
-	int dcol_per_roc[CHIPS_PER_MODULE];
-   for(int j=0; j<CHIPS_PER_MODULE; j++) dcol_per_roc[j]=0;
+	int dcol_per_roc[CHIPS_PER_TELESCOPE];
+	for(int j=0; j<CHIPS_PER_TELESCOPE; j++) dcol_per_roc[j]=0;
 	int nrocs=0;
 
-	for(int i=0; i<CHIPS_PER_MODULE; i++){
+	for(int i=0; i<CHIPS_PER_TELESCOPE; i++){
 	        if(trigger) g2->Fill(roc_counters[i]);
 		if(roc_counters[i]>0) {
 			nrocs++;
@@ -403,7 +406,7 @@ void FillHisto(hit_vector &hits, int trigger)
 	}
 	if(nrocs>0) h5->Fill(nrocs);
 	if(trigger) g5->Fill(nrocs);
-	for(int i=0; i<CHIPS_PER_MODULE; i++){
+	for(int i=0; i<CHIPS_PER_TELESCOPE; i++){
 		for(int j=0; j<DCOLS_PER_ROC; j++){
 		    if(trigger) g3->Fill(dcol_counters[i][j]);
 		    if(dcol_counters[i][j]>0) {

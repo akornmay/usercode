@@ -75,7 +75,7 @@ private:
 	TRandom3 * rndPhase;			  ///< Random number generator used to assign bunch crossing
 	double * clkDist;			  ///< Distribution used to assign bunch crossing
 	roc_vector ROCs;                          ///< Vector of all ROCs per module
-	tbm_vector TBMs;                          ///< Vector of all TBM cores per module
+	hrtb_vector HRTBs;                          ///< Vector of all TBM cores per module
 	long int bx_counter;                      ///< Bunch crossing counter
 	int Id;                                   ///< Id of module in layer/blade
 };

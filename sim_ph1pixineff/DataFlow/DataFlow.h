@@ -9,6 +9,7 @@
 #include <TProfile.h>
 #include <TString.h>
 #include "Module.h"
+#include "Telescope.h"
 #include <iostream>
 #include <fstream>
 #include <streambuf>
