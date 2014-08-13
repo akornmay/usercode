@@ -39,14 +39,16 @@ int main(int argc, char **argv)
    EventReader.Init(layer);
 
    double phase=0;					//Phase between Fermi and LHC clock
-   bool newBC=true;
+   bool newBC=false;
    int old_trig=0;
    
    nextEvent = new Event;
    nextEvent->New(2,false);
    nextNextEvent = new Event;
    nextNextEvent->New(3,false);
-      
+   event.New(1,false);
+   
+   if(SAVE_TREE)initSave();
 // *****************************************************************************************************
 //                   main loop over bunch crossings
 // *****************************************************************************************************	
@@ -56,91 +58,118 @@ int main(int argc, char **argv)
    for(clk=1; clk< MAX_EVENT; clk++){
       if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
       else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-      else if(!(clk %50000)) cout <<"Processing event number "<< clk << " ....."<<endl;
+      else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
+      if(newBC){
+// 	cout<<"NEW BC. Total hits : "<<event.hits[MIN_MOD-1].size() <<endl;
+// 	cout<<"NEW BC. Next hits : "<<(*nextEvent).hits[MIN_MOD-1].size() <<endl;
+// 	cout<<"NEW BC. Next² hits : "<<(*nextNextEvent).hits[MIN_MOD-1].size() <<endl;
+	/////////////////////////////////////////////////////////////////////////
+	////////////PROCESSING EVENT FROM PREVIOUS BUNCH CROSSING ///////////////
+	/////////////////////////////////////////////////////////////////////////
+	
+	//all clusters
+	event.clusterize( false );
+	//only efficient clusters
+	event.clusterize( true );
+	eff->Fill( event.clustersall.size() , event.getInefficiency() ); 
+	effflux->Fill( event.flux , event.getInefficiency() ); 
+	effflux_hits->Fill( event.flux , event.getInefficiencyHit() ); 
+	effhitrate->Fill( event.clustersall.size() / 0.64 * 40. , event.getInefficiency() ); 
+	//fill reasons
+	int reasons[6];
+	for (int x = 0; x < 6; x++ )
+	    reasons[x] = 0;
 
-      if(newBC && last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
+	int whichvec = -1;
+	
+	for ( int x = 0; x < 4; x++ )
+	    if ( event.hits[x].size() > 0 )
+	    {
+		whichvec = x;
+		break;
+	    }
+	if (whichvec>-1){
+	    for (int x = 0; x < event.hits[whichvec].size(); x++ )
+		reasons[ event.hits[whichvec][x].inefftype ]++;
 
-      int trigger=0;
-      if(newBC && last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be triggered
-	         trigger=1;
-	         ntrig++;
-	         last_trigger=MINIMAL_TRIGGER_GAP;
-      }
-      if (newBC)old_trig=trigger;
-
-      event.New(clk, trigger);			     	         // initialize new event
-      EventReader.ReadEvent(event);		                 // read hits from input file(s)
-      
-      if (newBC){
-	if(WriteHisto){
-            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(nextEvent->hits[i], old_trig);	//Saving new events with new trigger
+	    for (int x = 0; x < 6; x++ )
+		inefftype[x]->Fill(event.flux , reasons[x] / event.hits[whichvec].size() );
 	}
+	
+	if (clk == 102 )
+	    {
+	    for (int c=0; c<event.clustersall.size(); c++)
+		{
+		for (int px = 0; px < event.clustersall[c].size(); px++)
+		    {	    
+		    pxhit thishit = event.clustersall[c].at(px);
+		    allclusters_ev->Fill( thishit.mycol , thishit.myrow , c+1 );
+		    }
+		}
+
+	    for (int c=0; c<event.clustersafter.size(); c++)
+		{
+		for (int px = 0; px < event.clustersafter[c].size(); px++)
+		    {	    
+		    pxhit thishit = event.clustersafter[c].at(px);
+		    effclusters_ev->Fill( thishit.mycol , thishit.myrow , c+1 );
+		    }
+		}
+
+	    }
+	if(WriteHisto){
+		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(event.hits[i], event.trigger);
+	}
+	
+// 	if(event.trigger && SAVE_TREE){
+// 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
+// 	}
+	iMod=Modules.begin();
+	for(; iMod!=Modules.end(); iMod++)
+		    iMod->AddHits(event);  // add hits to Module
+	
+	iMod=Modules.begin();
+	for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
+	
+	
+	////////////////////////////////////////////////////////
+	///////////Generating next (empty) event////////////////
+	////////////////////////////////////////////////////////
+	
+	
+	if(last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
+	int trigger=0;
+	if(last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be triggered
+		    trigger=1;
+		    ntrig++;
+		    last_trigger=MINIMAL_TRIGGER_GAP;
+	}
+
+	
+	event.New(clk, trigger);			     // initialize new event
+	
+	////////////////////////////////////////////////////////
+	////////Moving 'next' to evt and 'next²' to next////////
+	////////////////////////////////////////////////////////
+		
+	for(int i=MIN_MOD-1; i<MAX_MOD; i++){
+	    for(int j=0; j<nextEvent->hits[i].size(); j++){
+		nextEvent->hits[i][j].timeStamp=event.clock;
+		nextEvent->hits[i][j].trigger=event.trigger;
+		event.hits[i].push_back(nextEvent->hits[i][j]);			//Add previous "next event" to new event
+	    }
+	}
+	   
 	delete nextEvent;
 	nextEvent = nextNextEvent;
 	nextNextEvent = new Event;
-	nextNextEvent->New(clk+2,false);					//Generating event for next clk. trigger added later.
+	nextNextEvent->New(clk+2,false);					//Generating event for next clk.
       }
       
-      //all clusters
-      event.clusterize( false );
-      //only efficient clusters
-      event.clusterize( true );
-
-      eff->Fill( event.clustersall.size() , event.getInefficiency() ); 
-      effflux->Fill( event.flux , event.getInefficiency() ); 
-      effflux_hits->Fill( event.flux , event.getInefficiencyHit() ); 
-      effhitrate->Fill( event.clustersall.size() / 0.64 * 40. , event.getInefficiency() ); 
-
-      //fill reasons
-      int reasons[6];
-      for (int x = 0; x < 6; x++ )
-	reasons[x] = 0;
-
-      int whichvec = -1;
-      
-      for ( int x = 0; x < 4; x++ )
-	if ( event.hits[x].size() > 0 )
-	  {
-	    whichvec = x;
-	    break;
-	  }
-
-      for (int x = 0; x < event.hits[whichvec].size(); x++ )
-	reasons[ event.hits[whichvec][x].inefftype ]++;
-
-      for (int x = 0; x < 6; x++ )
-	inefftype[x]->Fill(event.flux , reasons[x] / event.hits[whichvec].size() );
-
-
-      if (clk == 102 )
-	{
-	  for (int c=0; c<event.clustersall.size(); c++)
-	    {
-	      for (int px = 0; px < event.clustersall[c].size(); px++)
-		{	    
-		  pxhit thishit = event.clustersall[c].at(px);
-		  allclusters_ev->Fill( thishit.mycol , thishit.myrow , c+1 );
-		}
-	    }
-
-	  for (int c=0; c<event.clustersafter.size(); c++)
-	    {
-	      for (int px = 0; px < event.clustersafter[c].size(); px++)
-		{	    
-		  pxhit thishit = event.clustersafter[c].at(px);
-		  effclusters_ev->Fill( thishit.mycol , thishit.myrow , c+1 );
-		}
-	    }
-
-	}
-
-      
-      
-      
-      
-      
-      
-      int nHits=event.hits[MIN_MOD-1].size();
+      eventToProcess.New(clk,0);
+      EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
+//       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
+      int nHits=eventToProcess.hits[MIN_MOD-1].size();
       double * hPhase= new double[nHits];
       for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
       for (int j=MIN_MOD-1; j<MAX_MOD; j++){					//Sort in BC from phase
@@ -150,57 +179,46 @@ int main(int argc, char **argv)
 		    double ep = phase+j*DET_SPACING*1./29.98;
 		    int BC_sort=Modules[j-MIN_MOD+1].GetBC(hp);
 		    if(BC_sort==0){
-			event.hits[j][i].phase=hp+12.5;				//Save phase for hit
-			event.hits[j][i].evtPhase=ep+12.5;	
+			eventToProcess.hits[j][i].phase=hp+12.5;				//Save phase for hit
+			eventToProcess.hits[j][i].evtPhase=ep+12.5;
+			eventToProcess.hits[j][i].timeStamp=event.clock;
+			eventToProcess.hits[j][i].trigger=event.trigger;
+			event.hits[j].push_back(eventToProcess.hits[j][i]);			//Change phase and move to next BC
+			eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
+
 		    }
 		    else if(BC_sort==1){
-			    event.hits[j][i].phase=hp-12.5;
-			    event.hits[j][i].evtPhase=ep-12.5;
-			    nextEvent->hits[j].push_back(event.hits[j][i]);		//Change phase and move to next BC
-			    event.hits[j].erase(event.hits[j].begin()+i);
+			    eventToProcess.hits[j][i].phase=hp-12.5;
+			    eventToProcess.hits[j][i].evtPhase=ep-12.5;
+			    nextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next BC
+			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
 		    }
 		    else if(BC_sort==2){
-			    event.hits[j][i].phase=hp-37.5;
-			    event.hits[j][i].evtPhase=ep-37.5;
-			    nextNextEvent->hits[j].push_back(event.hits[j][i]);		//Change phase and move to next/next BC
-			    event.hits[j].erase(event.hits[j].begin()+i);
+			    eventToProcess.hits[j][i].phase=hp-37.5;
+			    eventToProcess.hits[j][i].evtPhase=ep-37.5;
+			    nextNextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next/next BC
+			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
 		    }
 		    else{
 			
 			    cerr<<"Bad event #BC = "<<BC_sort<<" ignored"<<endl;   
-			    event.hits[j].erase(event.hits[j].begin()+i);
+			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
 		    }
 	}
       }
-		
-     
-		
-
-      if(WriteHisto){
-            for(int i=MIN_MOD-1; i<MAX_MOD; i++)    FillHisto(event.hits[i], old_trig);
-      }
-      iMod=Modules.begin();
-      for(; iMod!=Modules.end(); iMod++)
-                iMod->AddHits(event);  // add hits to Module
-
+      delete hPhase;
+     // Move clock
      phase+=18.8;
       if(phase>25){
 	newBC=true;
 	phase-=25;
-	
-	iMod=Modules.begin();
-	for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
-
-	iMod=Modules.begin();
-	for(; iMod!=Modules.end(); iMod++)
-                iMod->AddHits(*nextEvent);  // add hits to Module
       }
       else{
 	newBC=false;
 	clk--;
       }
    }					       	                                // end of main loop
-
+   if(SAVE_TREE)endSave();
 // *****************************************************************************************************
 //                        Statistics output
 // *****************************************************************************************************	
@@ -475,12 +493,20 @@ void ReadSettings(char* fileName)
 				   MAX_EVENT=atol(Value.c_str());
 				   continue;
 			}
+			if(Parameter=="PIX_TREE_FILE"){
+				   PIX_TREE_FILE=Value;
+				   continue;
+			}
 			if(Parameter=="TRIGGER_RATE"){
 				TRIGGER_RATE=atof(Value.c_str());
 				continue;
 			}
 			if(Parameter=="PIX_SIGMA"){
 				PIX_SIGMA=atof(Value.c_str());
+				continue;
+			}
+			if(Parameter=="SAVE_TREE"){
+				SAVE_TREE=atoi(Value.c_str());
 				continue;
 			}
 			if(Parameter=="DET_SPACING"){
@@ -665,3 +691,52 @@ void ReadSettings(char* fileName)
 }
 
 bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}
+
+void initSave(){
+    pixFile = new TFile(PIX_TREE_FILE.c_str(),"RECREATE");
+    pixTree = new TTree("hitTree","hits from simulation");
+    pixTree->Branch("TS",&pStruct.TS,"TS/L");
+    pixTree->Branch("roc",&pStruct.roc,"roc/I");
+    pixTree->Branch("row",&pStruct.myrow,"myrow/I");
+    pixTree->Branch("col",&pStruct.mycol,"mycol/I");
+    pixTree->Branch("vcal",&pStruct.vcal,"vcal/I");
+    pixTree->Branch("pulseHeight",&pStruct.pulseHeight,"pulseHeight/D");
+    pixTree->Branch("phase",&pStruct.phase,"phase/D");
+    pixTree->Branch("trigger_number",&pStruct.trigger_number,"trigger_number/i");
+    pixTree->Branch("token_number",&pStruct.token_number,"token_number/i");
+    pixTree->Branch("triggers_stacked",&pStruct.triggers_stacked,"triggers_stacked/B");
+    pixTree->Branch("trigger_phase",&pStruct.trigger_phase,"trigger_phase/B");
+    pixTree->Branch("data_phase",&pStruct.data_phase,"data_phase/B");
+    pixTree->Branch("status",&pStruct.status,"status/B");
+}
+
+void endSave(){
+    cout<<"Writing Tree...";
+    pixTree->Write();
+    pixFile->Close();
+    cout<<"done !"<<endl;
+}
+void saveHit(pxhit * hit){
+    
+    	pStruct.TS=(*hit).timeStamp;
+	pStruct.roc=(*hit).roc;
+	pStruct.myrow=(*hit).myrow;
+	pStruct.mycol=(*hit).mycol;
+	pStruct.vcal=(*hit).vcal;
+	pStruct.pulseHeight=(*hit).pulseHeight;
+	pStruct.phase=(*hit).phase;
+	
+	pStruct.trigger_number=(*hit).trigger_number;
+	pStruct.token_number=(*hit).token_number;
+	pStruct.triggers_stacked=(*hit).triggers_stacked;
+	pStruct.trigger_phase=(*hit).trigger_phase;
+	pStruct.data_phase=(*hit).data_phase;
+	pStruct.status=(*hit).status;
+	
+	pixTree->Fill();
+}
+
+void saveHits(hit_vector * hits){
+    for(int i=0; i<hits->size(); i++) saveHit(&((*hits)[i]));
+}
+

@@ -14,6 +14,9 @@ public:
 	void Init(int lr, std::string &name);
 	void GetHits(Event &event, int nEvents);
 private:
+	int nTrig;
+	
+	int vcal;
 	short int col, row, adc;
 	int event_nr;
 	float flux;
