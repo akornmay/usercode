@@ -130,7 +130,7 @@ void RootHits::GetHits(Event &event, int nEvents)
 	  hit.dcol=row<80 ? (int)((col % 52) / 2) : (int)(((415-col) % 52)/2);
 	  hit.myrow = row;
 	  hit.mycol = col;
-	  hit.flux = flux;
+	  hit.flux = flux;	  
 	  event.flux = flux;
 	  event.hits[tree_module-1].push_back(hit);
 	  allhits->Fill((int)col,(int) row);

@@ -42,7 +42,6 @@ int main(int argc, char **argv)
    bool newBC=false;
    int old_trig=0;
    
-   cout<<"ici ?"<<endl;
    nextEvent = new Event;
    nextEvent->New(2,false);
    nextNextEvent = new Event;
@@ -59,23 +58,11 @@ int main(int argc, char **argv)
    for(clk=1; clk< MAX_EVENT; clk++){
       if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
       else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-      else if(!(clk %50000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-
+      else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
       if(newBC){
-	for(int i=MIN_MOD-1; i<MAX_MOD; i++){
-	    for(int j=0; j<nextEvent->hits[i].size(); j++){
-		nextEvent->hits[i][j].timeStamp=event.clock;
-		nextEvent->hits[i][j].trigger=event.trigger;
-		event.hits[i].push_back(nextEvent->hits[i][j]);			//Add previous "next event" to new event
-	    }
-	}
-	   
-	delete nextEvent;
-	nextEvent = nextNextEvent;
-	nextNextEvent = new Event;
-	nextNextEvent->New(clk+2,false);					//Generating event for next clk.
-	
-	
+// 	cout<<"NEW BC. Total hits : "<<event.hits[MIN_MOD-1].size() <<endl;
+// 	cout<<"NEW BC. Next hits : "<<(*nextEvent).hits[MIN_MOD-1].size() <<endl;
+// 	cout<<"NEW BC. Next² hits : "<<(*nextNextEvent).hits[MIN_MOD-1].size() <<endl;
 	/////////////////////////////////////////////////////////////////////////
 	////////////PROCESSING EVENT FROM PREVIOUS BUNCH CROSSING ///////////////
 	/////////////////////////////////////////////////////////////////////////
@@ -84,12 +71,10 @@ int main(int argc, char **argv)
 	event.clusterize( false );
 	//only efficient clusters
 	event.clusterize( true );
-
 	eff->Fill( event.clustersall.size() , event.getInefficiency() ); 
 	effflux->Fill( event.flux , event.getInefficiency() ); 
 	effflux_hits->Fill( event.flux , event.getInefficiencyHit() ); 
 	effhitrate->Fill( event.clustersall.size() / 0.64 * 40. , event.getInefficiency() ); 
-
 	//fill reasons
 	int reasons[6];
 	for (int x = 0; x < 6; x++ )
@@ -103,14 +88,14 @@ int main(int argc, char **argv)
 		whichvec = x;
 		break;
 	    }
+	if (whichvec>-1){
+	    for (int x = 0; x < event.hits[whichvec].size(); x++ )
+		reasons[ event.hits[whichvec][x].inefftype ]++;
 
-	for (int x = 0; x < event.hits[whichvec].size(); x++ )
-	    reasons[ event.hits[whichvec][x].inefftype ]++;
-
-	for (int x = 0; x < 6; x++ )
-	    inefftype[x]->Fill(event.flux , reasons[x] / event.hits[whichvec].size() );
-
-
+	    for (int x = 0; x < 6; x++ )
+		inefftype[x]->Fill(event.flux , reasons[x] / event.hits[whichvec].size() );
+	}
+	
 	if (clk == 102 )
 	    {
 	    for (int c=0; c<event.clustersall.size(); c++)
@@ -139,7 +124,6 @@ int main(int argc, char **argv)
 // 	if(event.trigger && SAVE_TREE){
 // 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
 // 	}
-	
 	iMod=Modules.begin();
 	for(; iMod!=Modules.end(); iMod++)
 		    iMod->AddHits(event);  // add hits to Module
@@ -147,9 +131,11 @@ int main(int argc, char **argv)
 	iMod=Modules.begin();
 	for(; iMod!=Modules.end(); iMod++) iMod->Clock();    // advance clock in module
 	
+	
 	////////////////////////////////////////////////////////
 	///////////Generating next (empty) event////////////////
 	////////////////////////////////////////////////////////
+	
 	
 	if(last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
 	int trigger=0;
@@ -161,12 +147,28 @@ int main(int argc, char **argv)
 
 	
 	event.New(clk, trigger);			     // initialize new event
-
+	
+	////////////////////////////////////////////////////////
+	////////Moving 'next' to evt and 'next²' to next////////
+	////////////////////////////////////////////////////////
+		
+	for(int i=MIN_MOD-1; i<MAX_MOD; i++){
+	    for(int j=0; j<nextEvent->hits[i].size(); j++){
+		nextEvent->hits[i][j].timeStamp=event.clock;
+		nextEvent->hits[i][j].trigger=event.trigger;
+		event.hits[i].push_back(nextEvent->hits[i][j]);			//Add previous "next event" to new event
+	    }
+	}
+	   
+	delete nextEvent;
+	nextEvent = nextNextEvent;
+	nextNextEvent = new Event;
+	nextNextEvent->New(clk+2,false);					//Generating event for next clk.
       }
       
       eventToProcess.New(clk,0);
       EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
-            
+//       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
       int nHits=eventToProcess.hits[MIN_MOD-1].size();
       double * hPhase= new double[nHits];
       for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
@@ -700,6 +702,12 @@ void initSave(){
     pixTree->Branch("vcal",&pStruct.vcal,"vcal/I");
     pixTree->Branch("pulseHeight",&pStruct.pulseHeight,"pulseHeight/D");
     pixTree->Branch("phase",&pStruct.phase,"phase/D");
+    pixTree->Branch("trigger_number",&pStruct.trigger_number,"trigger_number/i");
+    pixTree->Branch("token_number",&pStruct.token_number,"token_number/i");
+    pixTree->Branch("triggers_stacked",&pStruct.triggers_stacked,"triggers_stacked/B");
+    pixTree->Branch("trigger_phase",&pStruct.trigger_phase,"trigger_phase/B");
+    pixTree->Branch("data_phase",&pStruct.data_phase,"data_phase/B");
+    pixTree->Branch("status",&pStruct.status,"status/B");
 }
 
 void endSave(){
@@ -709,6 +717,7 @@ void endSave(){
     cout<<"done !"<<endl;
 }
 void saveHit(pxhit * hit){
+    
     	pStruct.TS=(*hit).timeStamp;
 	pStruct.roc=(*hit).roc;
 	pStruct.myrow=(*hit).myrow;
@@ -716,19 +725,18 @@ void saveHit(pxhit * hit){
 	pStruct.vcal=(*hit).vcal;
 	pStruct.pulseHeight=(*hit).pulseHeight;
 	pStruct.phase=(*hit).phase;
+	
+	pStruct.trigger_number=(*hit).trigger_number;
+	pStruct.token_number=(*hit).token_number;
+	pStruct.triggers_stacked=(*hit).triggers_stacked;
+	pStruct.trigger_phase=(*hit).trigger_phase;
+	pStruct.data_phase=(*hit).data_phase;
+	pStruct.status=(*hit).status;
+	
 	pixTree->Fill();
 }
 
 void saveHits(hit_vector * hits){
-    for(int i=0; i<hits->size(); i++){
-	pStruct.TS=(*hits)[i].timeStamp;
-	pStruct.roc=(*hits)[i].roc;
-	pStruct.myrow=(*hits)[i].myrow;
-	pStruct.mycol=(*hits)[i].mycol;
-	pStruct.vcal=(*hits)[i].vcal;
-	pStruct.pulseHeight=(*hits)[i].pulseHeight;
-	pStruct.phase=(*hits)[i].phase;
-	pixTree->Fill();
-    }
+    for(int i=0; i<hits->size(); i++) saveHit(&((*hits)[i]));
 }
 
