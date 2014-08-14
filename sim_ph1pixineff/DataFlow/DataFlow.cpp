@@ -140,7 +140,8 @@ int main(int argc, char **argv)
 	
 	if(last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
 	int trigger=0;
-	if(last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be triggered
+	//	if(last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be randomly triggered
+	if(last_trigger==0 && clk%TRIGGER_BUCKET==0) {	     // this event will be triggered at a specific bucket number
 		    trigger=1;
 		    ntrig++;
 		    last_trigger=MINIMAL_TRIGGER_GAP;
@@ -153,7 +154,7 @@ int main(int argc, char **argv)
 	////////Moving 'next' to evt and 'next²' to next////////
 	////////////////////////////////////////////////////////
 		
-	for(int i=MIN_MOD-1; i<MAX_MOD; i++){
+	for(int i=0; i<NUMBER_OF_TELESCOPES; i++){
 	    for(int j=0; j<nextEvent->hits[i].size(); j++){
 		nextEvent->hits[i][j].timeStamp=event.clock;
 		nextEvent->hits[i][j].trigger=event.trigger;
@@ -530,13 +531,17 @@ void ReadSettings(char* fileName)
 			        TOKEN_DELAY=atoi(Value.c_str());
 				continue;
 			}
+			if(Parameter=="TRIGGER_BUCKET"){
+			        TRIGGER_BUCKET=atoi(Value.c_str());
+				continue;
+			}
 			if(Parameter=="BUNCH_SPACING"){
 			  BUNCH_SPACING=atoi(Value.c_str());
 			  if(BUNCH_SPACING%25 !=0){
-               cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
-               exit(0);
-            }
-				continue;
+			    cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
+			    exit(0);
+			  }
+			  continue;
 			}
 			if(Parameter=="WBC"){
 			  WBC=atol(Value.c_str());

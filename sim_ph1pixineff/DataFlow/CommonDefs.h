@@ -62,6 +62,7 @@ const int CHIPS_PER_TELESCOPE(8);
 const int LINKS_PER_TELESCOPE(1);
 const unsigned int TELESCOPE_STACK_SIZE(16);
 
+extern int TRIGGER_BUCKET;                              //Nuber of the bucket in each turn the trigger is send on
 
 //
 // readout format

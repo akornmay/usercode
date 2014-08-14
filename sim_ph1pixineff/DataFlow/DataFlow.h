@@ -54,7 +54,7 @@ int CHIPS_PER_LINK[2];
 //HRBT settings
 //
 int TOKEN_DELAY;
-
+int TRIGGER_BUCKET;
 //
 // method declarations
 //
