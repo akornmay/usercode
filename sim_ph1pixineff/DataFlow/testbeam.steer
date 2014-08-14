@@ -6,16 +6,16 @@
 #
 # physics parameters
 #
-#	MAX_EVENT = 2000000;			                         // #events to be processed
+#	MAX_EVENT = 200000000;			                         // #events to be processed
 	MAX_EVENT = 500000;			                         // #events to be processed
         CREATE_PILEUP = 0;                                               // generate pile-up
 	PEAK_LUMI = 0.7;			                         // peak luminosity in 10^34
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
 	OUTPUT_FILENAME = testbeam5g_gaus.root	                                 // Name of histo file
-#	SIGNAL_FILENAME = ./OutputFile_100000.root        // File with signal hits.  
-	SIGNAL_FILENAME = ../geantTracks/output_geant.root        // File with signal hits.  
-#        MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
+#	SIGNAL_FILENAME = ./OutputFile_100000.root        		 // File with signal hits.  
+	SIGNAL_FILENAME = ../geantTracks/output_geant.root        	 // File with signal hits.  
+#       MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
 #                                      				         // For several signal and/or MinBias files 
 #                                                                        //repeat these statements for each file
 #
@@ -47,3 +47,7 @@
 #
 	PIX_SIGMA = 1.7							//Pixel clock spread (in ns)
 	DET_SPACING = 5							//Distance between Det (in cm)
+	
+# Save param	
+	SAVE_TREE =  1							//save tree
+	PIX_TREE_FILE = ./treeFile.root					//File where tree will be saved

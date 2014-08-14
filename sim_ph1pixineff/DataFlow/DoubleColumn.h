@@ -16,6 +16,7 @@ public:
 };
 
 
+
 /** \class TimeStamp
  * Class implementing the time stamp buffer
  * @author Hans-Christian Kaestli
@@ -207,6 +208,10 @@ public:
     * Send reset to TS and DB buffer. Counts number of hits lost and updates statistics. 
     * Reset double column logic.
     */	
+   
+   void writeToTree();
+   /** @brief Writes hit to tree
+    */
    void Reset();
 
    pixlist hits;          ///< list of hits in double column waiting for column drain

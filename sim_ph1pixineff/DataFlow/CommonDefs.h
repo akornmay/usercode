@@ -6,7 +6,8 @@
 #include <fstream>
 #include <streambuf>
 #include <list>
-
+#include "TTree.h"
+#include "TFile.h"
 
 //
 // general settings
@@ -29,6 +30,12 @@ extern bool CreatePileUp;
 extern int ALL_BUNCHES_FILLED;                          // 1: all bunches are filled; 0: only certain bunches are filled
 extern double PIX_SIGMA;				//Spread of pixel clock (in ns)
 extern double DET_SPACING;				//distance between det for phase assignment
+
+extern bool SAVE_TREE;
+extern void saveHits(hit_vector * hits);
+extern void saveHit(pxhit * hit);
+
+extern std::string PIX_TREE_FILE;
 
 const int MINIMAL_TRIGGER_GAP(3);                       // minimal gap between triggers (3 BX)
 
