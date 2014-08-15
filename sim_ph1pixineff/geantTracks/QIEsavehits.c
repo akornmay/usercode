@@ -66,7 +66,10 @@ int main(int argc, char *argv[]) {
 
   TRandom3 * random = new TRandom3();
 
-  TFile *outputFile = new TFile("output_geant.root","UPDATE");
+  //create the output file
+  char txt[256];
+  sprintf(txt,"simdataTree_RUN%i.root",runNumber);
+  TFile *outputFile = new TFile(txt,"UPDATE");
 
   //create the tree to store the data
   char title[30];
