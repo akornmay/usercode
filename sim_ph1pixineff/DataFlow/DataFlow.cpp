@@ -36,10 +36,14 @@ int main(int argc, char **argv)
      {
        iTel->Init(j++);
      }
+   printf("we have %i Telescopes\n",j);
 
+   //   RootReader EventReader;
+   //   EventReader.Init(layer);
 
-   RootReader EventReader;
-   EventReader.Init(layer);
+   TelescopeReader EventReader;
+   EventReader.Init();
+
 
    double phase=0;					//Phase between Fermi and LHC clock
    bool newBC=false;
@@ -59,10 +63,11 @@ int main(int argc, char **argv)
    
    
    for(clk=1; clk< MAX_EVENT; clk++){
-      if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-      else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-      else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
-      if(newBC){
+     if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
+     else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
+     else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
+     if(newBC){
+       //	printf("Tick\n");
 // 	cout<<"NEW BC. Total hits : "<<event.hits[MIN_MOD-1].size() <<endl;
 // 	cout<<"NEW BC. Next hits : "<<(*nextEvent).hits[MIN_MOD-1].size() <<endl;
 // 	cout<<"NEW BC. Next² hits : "<<(*nextNextEvent).hits[MIN_MOD-1].size() <<endl;
@@ -73,7 +78,7 @@ int main(int argc, char **argv)
 	//all clusters
 	event.clusterize( false );
 	//only efficient clusters
-	event.clusterize( true );
+	//	event.clusterize( true );
 	eff->Fill( event.clustersall.size() , event.getInefficiency() ); 
 	effflux->Fill( event.flux , event.getInefficiency() ); 
 	effflux_hits->Fill( event.flux , event.getInefficiencyHit() ); 
@@ -127,6 +132,9 @@ int main(int argc, char **argv)
 // 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
 // 	}
 	iTel=Telescopes.begin();
+	//	cout << "in main loop before filling: Size = " << event.hits[0].size() << endl;
+ 
+
 	for(; iTel!=Telescopes.end(); iTel++) iTel->AddHits(event);  // add hits to telescope
 
 	iTel=Telescopes.begin();
@@ -171,10 +179,10 @@ int main(int argc, char **argv)
       eventToProcess.New(clk,0);
       EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
 //       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
-      int nHits=eventToProcess.hits[MIN_MOD-1].size();
+      int nHits=eventToProcess.hits[0].size();
       double * hPhase= new double[nHits];
       for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
-      for (int j=MIN_MOD-1; j<MAX_MOD; j++){					//Sort in BC from phase
+      for (int j=0; j<NUMBER_OF_TELESCOPES; j++){					//Sort in BC from phase
 	  int nHitsToProcess = nHits;
 	for(int i=nHits-1; i>-1; i--){
 		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;

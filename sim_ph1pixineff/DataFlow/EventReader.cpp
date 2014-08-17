@@ -234,3 +234,117 @@ void RootHits::Init(int lr, std::string &name)
    cout <<"File "<<name<<" opened."<<endl;
 }
 
+
+/*
+ * the telescope part
+ */
+
+//define the TelescopeReader that reads the data files
+
+
+void TelescopeReader::Init()
+{
+  // read all data files	
+  std::list<std::string>::const_iterator iName;
+  for(iName=SignalFileNames.begin(); iName!=SignalFileNames.end(); iName++){
+    TelescopeHits *tree = new TelescopeHits();
+    std::string FileName=*iName;
+    tree->Init(FileName);
+    signalTrees.push_back(tree);
+  }
+  iSignal=signalTrees.begin();
+  
+}
+
+
+
+void TelescopeReader::ReadEvent(Event &event)
+{	
+   int nSignal=1;   
+   int nPileUp=0;
+
+   (*iSignal++)->GetHits(event, nSignal);
+   if(iSignal==signalTrees.end()) iSignal=signalTrees.begin(); 
+}
+
+
+void TelescopeHits::Init(std::string &name)
+{
+   cout <<"Trying to open file "<<name<<endl;
+   HitFile = TFile::Open(name.c_str(), "READ");
+   if(!HitFile) {
+      std::cout << "File \""<<name<<"\" not found."<< std::endl;
+      exit(0);
+   }
+   char title[128];
+   sprintf(title,"Telescope");
+   HitTree=(TTree*) HitFile->Get(title);
+   
+   HitTree->SetBranchAddress("vcal",&vcal);
+   HitTree->SetBranchAddress("roc",&roc);
+   HitTree->SetBranchAddress("Event",&tree_event);
+   HitTree->SetBranchAddress("col",&col);
+   HitTree->SetBranchAddress("row",&row);
+   HitTree->SetBranchAddress("pulseHeight",&adc);
+   HitTree->SetBranchAddress("flux",&flux);
+   N_Entries=(UInt_t) HitTree->GetEntries();
+   UInt_t rPointer=0;
+   cout <<"File "<<name<<" opened."<<endl;
+}
+
+
+TelescopeHits::~TelescopeHits()
+{
+	HitFile->Close();
+	delete HitFile;
+}
+
+
+void TelescopeHits::GetHits(Event &event, int nEvents)
+{
+  pxhit hit;
+  HitTree->GetEntry(rPointer++);
+  if(rPointer==N_Entries) rPointer=0;
+  int event_nr=tree_event;
+  for(int i=0; i<nEvents; i++){
+    do {
+      if(roc != -1)
+      	{
+	  
+	  hit.timeStamp=event.clock;
+	  hit.trigger=event.trigger;
+	  hit.pulseHeight=adc;
+	  hit.vcal=vcal;
+	  hit.roc=roc;
+	  hit.row=row;
+	  hit.dcol=col/2;
+	  hit.myrow = row;
+	  hit.mycol = col;
+	  hit.flux = flux;	  
+	  event.flux = flux;
+	  event.hits[0].push_back(hit);
+	  allhits->Fill((int)col,(int) row);
+	  hit.printhit();
+	  //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
+      
+	}
+
+      HitTree->GetEntry(rPointer++);
+      if(rPointer==N_Entries) rPointer=0;
+    } while(tree_event==event_nr);
+    
+    event_nr=tree_event;
+  }
+  rPointer--;
+  cout << "At end of GetHits: Size = " << event.hits[0].size() << endl;
+
+
+}
+
+
+
+
+
+
+
+

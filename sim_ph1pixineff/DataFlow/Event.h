@@ -36,7 +36,7 @@ class pxhit {
 
    
    
-   
+   void printhit();   
    
    bool operator < (const pxhit& b)const{
      long aa=roc*1000+dcol;

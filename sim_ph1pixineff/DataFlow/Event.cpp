@@ -1,6 +1,13 @@
 #include "Event.h"
 #include <cmath>
 
+
+void pxhit::printhit()
+{
+  printf("print pxhit: TS %li ROC %i (%02i|%02i)\n",timeStamp,roc,dcol,row); 
+}
+
+
 void Event::New(long clk, int trg)
 {
 	clock=clk;

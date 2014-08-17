@@ -38,7 +38,6 @@ public:
 private:
 	std::list<RootHits *> signalTrees, MB_Trees;
 	TRandom3 rndm;
-
 	double E_PileUp;						// expectation value for number of pile up events
 	double E_Signal;						// expectation value for number of signal events
 	std::list<RootHits *>::iterator iSignal, iMinBias;
@@ -54,5 +53,49 @@ public:
 private:
 	ifstream is[4];
 };
+
+
+// this part is especially for the telescope simulation
+
+
+class TelescopeHits
+{
+public:
+	~TelescopeHits();
+	void Init(std::string &name);
+	void GetHits(Event &event, int nEvents);
+private:
+	int nTrig;
+	
+	int vcal;
+	int col, row;
+	double adc;
+	int roc;
+	int event_nr;
+	float flux;
+	unsigned int tree_event;
+	UInt_t N_Entries;
+	UInt_t rPointer;
+	TFile *HitFile;
+	TTree *HitTree;
+};
+
+class TelescopeReader
+{
+ public:
+  void Init();
+  void ReadEvent(Event &event);
+ private:
+  std::list<TelescopeHits *> signalTrees;
+
+  std::list<TelescopeHits *>::iterator iSignal;
+
+};
+
+
+
+
+
+
 
 #endif /*EVENTREADER_H_*/

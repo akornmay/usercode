@@ -30,14 +30,16 @@ Telescope::Telescope()
 
 
 void Telescope::Init(int id) {
-   Id=id;
-	bx_counter=0;
-	int rocId=0;
-	for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++){
-		iRoc->Init(rocId++, &bx_counter);
-	}
-   hrtb_iter iHrtb=HRTBs.begin();
-   iHrtb->Init(ROCs.begin(), ROCs.begin()+CHIPS_PER_TELESCOPE, 0, &bx_counter);
+  Id=id;
+  bx_counter=0;
+  int rocId=0;
+  for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++){
+    iRoc->Init(rocId++, &bx_counter);
+  }
+  printf("with %i ROCs\n",rocId);
+
+  hrtb_iter iHrtb=HRTBs.begin();
+  iHrtb->Init(ROCs.begin(), ROCs.begin()+CHIPS_PER_TELESCOPE, 0, &bx_counter);
 }
 
 
@@ -50,14 +52,18 @@ Telescope::~Telescope()
 
 void Telescope::AddHits(Event &event)                         // called once per event
 {
+  //  printf("add hits Telescope\n");
+  
    if(event.trigger){                                      // this event will be triggered
       for(hrtb_iter iHRTB=HRTBs.begin(); iHRTB!=HRTBs.end(); iHRTB++) iHRTB->AddTS(event.clock);
       for (roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++) iRoc->Trigger(event.clock);
    }
-	hit_iterator hit;
-	for(hit=event.hits[Id].begin(); hit!=event.hits[Id].end(); hit++){
-	   ROCs[hit->roc].AddHit(*hit);
-	}
+   hit_iterator hit;
+   //cout << "Size of vector" << event.hits[0].size() << endl;
+   for(hit=event.hits[0].begin(); hit!=event.hits[0].end(); hit++){
+     ROCs[hit->roc].AddHit(*hit);
+     //     hit->printhit();
+   }
 }
 
 
