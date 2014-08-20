@@ -4,7 +4,7 @@
 extern TH1I *rodelay, *rotime, *eventsize;
 
 
-HRTB::HRTB() : READOUT(0), gap(0), ro_pix(0), ro_clocks(0)
+HRTB::HRTB() : READOUT(0), gap(0), delay(0), ro_pix(0), ro_clocks(0)
 {
 	triggerStack.clear();
 }
@@ -33,19 +33,28 @@ void HRTB::Clock()
 	int n_lost=0;
 	long TS=timeStamps[iRead];
 	if(*bx_counter==(WBC+5+TS)){                            // sets TS = timeStamp if expired, 0 otherwise
+	  delay = TOKEN_DELAY;
 	  timeStamps[iRead++]=-10000;                           //expired timeStamp
 	  if(iRead==TELESCOPE_STACK_SIZE) iRead=0;              //circular buffer for iRead
 	} else TS=0;
 	
-	if(TS>0) {
-	  triggerStack.push_back(TS);                           // have to wait, readout ongoing
-	}
-
-	if(gap>0){
-	  gap--;
-	  return;
-	}
-
+	if(TS>0) 
+	  {
+	    triggerStack.push_back(TS);                           // have to wait, readout ongoing
+	  }
+	
+	if(delay>0)
+	  {
+	    delay--;
+	    return;
+	  }
+	
+	if(gap>0)
+	  {
+	    gap--;
+	    return;
+	  }
+	
    pxhit hit;
    bool finished = true;
    if(READOUT){                                            // token scan running, we are reading out the data

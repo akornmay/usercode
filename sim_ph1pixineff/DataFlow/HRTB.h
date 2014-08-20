@@ -59,6 +59,7 @@ private:
    int n_transfer;                            ///< Remaining length for single hit readout
    bool READOUT;                              ///< True if readout in progress
    int gap;                                   ///< Gap in LHC clocks between trailer and next header
+   int delay;
    long RO_TS;                                ///< Time stamp of running readout
    int iRead;
    int iWrite;
