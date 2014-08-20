@@ -68,8 +68,8 @@ extern int TRIGGER_BUCKET;                              //Nuber of the bucket in
 // readout format
 //
 
-const int TELESCOPE_HEADER_LENGTH(16);
-const int TELESCOPE_TRAILER_LENGTH(15);
+const int TELESCOPE_HEADER_LENGTH(0);//(16);
+const int TELESCOPE_TRAILER_LENGTH(0);//(15);
 const int TELESCOPE_READOUT_GAP(0);
 
 

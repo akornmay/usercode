@@ -324,7 +324,7 @@ void TelescopeHits::GetHits(Event &event, int nEvents)
 	  event.flux = flux;
 	  event.hits[0].push_back(hit);
 	  allhits->Fill((int)col,(int) row);
-	  hit.printhit();
+	  //	  hit.printhit();
 	  //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
       
 	}
@@ -336,8 +336,6 @@ void TelescopeHits::GetHits(Event &event, int nEvents)
     event_nr=tree_event;
   }
   rPointer--;
-  cout << "At end of GetHits: Size = " << event.hits[0].size() << endl;
-
 
 }
 

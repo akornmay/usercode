@@ -56,8 +56,6 @@ private:
    roc_iter last_token;                       ///< List of ROC iterators
    roc_iter token;                            ///< ROC iterator pointing to where the r/o token is
    int Id;                                    ///< Id of TBM core inside module
-   int header;                                ///< Remaining length of TBM header in clocks
-   int trailer;                               ///< Remaining length of TBM trailer in clocks
    int n_transfer;                            ///< Remaining length for single hit readout
    bool READOUT;                              ///< True if readout in progress
    int gap;                                   ///< Gap in LHC clocks between trailer and next header

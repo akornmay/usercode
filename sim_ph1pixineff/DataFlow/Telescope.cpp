@@ -39,7 +39,7 @@ void Telescope::Init(int id) {
   printf("with %i ROCs\n",rocId);
 
   hrtb_iter iHrtb=HRTBs.begin();
-  iHrtb->Init(ROCs.begin(), ROCs.begin()+CHIPS_PER_TELESCOPE, 0, &bx_counter);
+  iHrtb->Init(ROCs.begin(), ROCs.begin()+CHIPS_PER_TELESCOPE, Id, &bx_counter);
 }
 
 
@@ -78,7 +78,6 @@ void Telescope::Clock()
 void Telescope::StatOut()
 {
 	char txt[50];
-	//	statistics stat[CHIPS_PER_MODULE]; 
 	statistics stat[8];
 	statistics mod_stat;
 	mod_stat.Reset();
