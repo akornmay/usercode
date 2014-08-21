@@ -126,3 +126,20 @@ int Telescope::GetBC(double phase)
     if(rndPhase->Rndm()>p){return(toReturn+1);}
     else{return(toReturn);}
 }
+
+
+void Telescope::Reset()
+{
+  for(hrtb_iter iHRTB=HRTBs.begin(); iHRTB!=HRTBs.end(); iHRTB++) 
+    {    
+      iHRTB->Reset();
+    }
+
+
+  for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++)
+    {
+      iRoc->Reset();
+    }
+}
+
+

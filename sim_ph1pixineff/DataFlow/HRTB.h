@@ -20,7 +20,7 @@ public:
    HRTB();
 
    /** @brief Initializing a readout link 
-    * 
+    *  
     * @param first : iterator of first ROC in chain
     * @param last : iterator of last ROC in chain
     * @param id : Unique Id of HRTB
@@ -30,6 +30,17 @@ public:
     * Init creates a list of iterators of ROCs controlled by the HRTB
     */	
    void Init(roc_iter first, roc_iter last, int id, long *bx);
+
+   /** @brief RESET all the ROCs in the HRTB
+    *
+    * @param first : iterator of first ROC in chain
+    * @param last : iterator of last ROC in chain
+    * @param id: HRTB id
+    *
+    * Reset the entire Telescope at the same time
+    *
+    */
+   void Reset();
 	
    /** @brief Adding a time stamp 
     * 

@@ -20,6 +20,18 @@ void HRTB::Init(roc_iter first, roc_iter last, int id, long int *bx)
    for(int i=0; i<TELESCOPE_STACK_SIZE; i++) timeStamps[i]=-10000;
 }
 
+void HRTB::Reset()
+{
+
+  iWrite=iRead=0;                                         //reset read and write pointer
+  for(int i=0; i<TELESCOPE_STACK_SIZE; i++)               //clear all timestamps in triggerstack 
+    {
+      timeStamps[i]=-10000;
+    }
+
+
+}
+
 
 void HRTB::AddTS(long TS)
 {
@@ -32,18 +44,18 @@ void HRTB::Clock()
 {
 	int n_lost=0;
 	long TS=timeStamps[iRead];
-	if(*bx_counter==(WBC+5+TS)){                            // sets TS = timeStamp if expired, 0 otherwise
+	if(*bx_counter==(WBC+5+TS)){                       // sets TS = timeStamp if expired, 0 otherwise
 	  delay = TOKEN_DELAY;
-	  timeStamps[iRead++]=-10000;                           //expired timeStamp
-	  if(iRead==TELESCOPE_STACK_SIZE) iRead=0;              //circular buffer for iRead
+	  timeStamps[iRead++]=-10000;                      //expired timeStamp
+	  if(iRead==TELESCOPE_STACK_SIZE) iRead=0;         //circular buffer for iRead
 	} else TS=0;
 	
 	if(TS>0) 
 	  {
-	    triggerStack.push_back(TS);                           // have to wait, readout ongoing
+	    triggerStack.push_back(TS);                    // have to wait, readout ongoing
 	  }
 	
-	if(delay>0)
+	if(delay>0)                                        //delaying the sending of a token
 	  {
 	    delay--;
 	    return;

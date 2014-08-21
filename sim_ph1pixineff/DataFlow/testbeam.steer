@@ -12,9 +12,9 @@
 	PEAK_LUMI = 0.7;			                         // peak luminosity in 10^34
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
-	OUTPUT_FILENAME = testbeam5g_gaus.root	                                 // Name of histo file
+	OUTPUT_FILENAME = output.root	                         // Name of histo file
 #	SIGNAL_FILENAME = ./OutputFile_100000.root        		 // File with signal hits.  
-	SIGNAL_FILENAME = ../geantTracks/output_geant.root        	 // File with signal hits.  
+	SIGNAL_FILENAME = ../geantTracks/simdataTree_RUN179540.root      // File with signal hits.  
 #       MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
 #                                      				         // For several signal and/or MinBias files 
 #                                                                        //repeat these statements for each file
@@ -40,7 +40,7 @@
 # special test beam parameters
 #
 	
-#	RESETINTERVAL = 0						//send a periodic resest every XXX clock cycles, 0: no reset send
+	RESETINTERVAL = 1000						//send a periodic resest every XXX clock cycles, 0: no reset send
 
 
 #

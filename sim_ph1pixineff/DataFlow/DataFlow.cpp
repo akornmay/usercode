@@ -20,6 +20,7 @@ int main(int argc, char **argv)
    p_trig*=(double)BUNCH_SPACING/25.0;
    int last_trigger=0;
    int ntrig=0;				            // count total number of triggers sent
+   int blockedtriggers = 0;                      //count of triggers blocked by trigger rules
 	
    TRandom3 rndm(93657);		         // random number generator
 
@@ -44,6 +45,9 @@ int main(int argc, char **argv)
    TelescopeReader EventReader;
    EventReader.Init();
 
+
+   long unsigned int bucketcounter = 0;
+   long unsigned int resetcounter = 0;
 
    double phase=0;					//Phase between Fermi and LHC clock
    bool newBC=false;
@@ -132,7 +136,6 @@ int main(int argc, char **argv)
 // 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
 // 	}
 	iTel=Telescopes.begin();
-	//	cout << "in main loop before filling: Size = " << event.hits[0].size() << endl;
  
 
 	for(; iTel!=Telescopes.end(); iTel++) iTel->AddHits(event);  // add hits to telescope
@@ -146,14 +149,47 @@ int main(int argc, char **argv)
 	////////////////////////////////////////////////////////
 	
 	
-	if(last_trigger>0) last_trigger--;                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
-	int trigger=0;
-	//	if(last_trigger==0 && rndm.Rndm()<p_trig) {	     // this event will be randomly triggered
-	if(last_trigger==0 && clk%TRIGGER_BUCKET==0) {	     // this event will be triggered at a specific bucket number
-		    trigger=1;
-		    ntrig++;
-		    last_trigger=MINIMAL_TRIGGER_GAP;
-	}
+	if(last_trigger>0) last_trigger--;                                                   // two triggers cannot be within MINIMAL_TRIGGER_GAP clocks
+	int trigger=0;                                                                      //we need to keep the minimal trigger gap to prevent double triggering a bucket
+
+
+	// if(ntrig != 0 && RESETINTERVAL != 0 && last_trigger == 0 && ntrig%RESETINTERVAL == 0)
+	//   {
+
+	//     cout <<" "<< RESETINTERVAL <<" "<< last_trigger <<" "<< ntrig <<" "<<  ntrig%RESETINTERVAL << endl;
+	//     resetcounter++;
+
+	//     iTel=Telescopes.begin();
+	//     for(; iTel!=Telescopes.end(); iTel++) 
+	//       {
+	// 	iTel->Reset();  // reset telescope
+	//       }
+
+	//   }
+
+
+	if(last_trigger==0 && (bucketcounter%588==TRIGGER_BUCKET || bucketcounter%588==(TRIGGER_BUCKET+1)))           // this event will be triggered at a specific bucket number
+	  {	  
+	    trigger=1;
+	    ntrig++;
+
+	    if(ntrig%RESETINTERVAL == 0) //don't send a trigger, instread send a reset
+	      {
+	
+		trigger =0;
+		resetcounter++;
+		
+		iTel=Telescopes.begin();
+		for(; iTel!=Telescopes.end(); iTel++) 
+		  {
+		    iTel->Reset();  // reset telescope
+		  }
+	      }
+
+	    last_trigger=MINIMAL_TRIGGER_GAP;
+	    //		    printf("Trigger #%i send\n", triggercounter);
+	  }
+	
 
 	
 	event.New(clk, trigger);			     // initialize new event
@@ -175,16 +211,16 @@ int main(int argc, char **argv)
 	nextNextEvent = new Event;
 	nextNextEvent->New(clk+2,false);					//Generating event for next clk.
       }
-      
-      eventToProcess.New(clk,0);
-      EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
-//       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
-      int nHits=eventToProcess.hits[0].size();
-      double * hPhase= new double[nHits];
-      for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
-      for (int j=0; j<NUMBER_OF_TELESCOPES; j++){					//Sort in BC from phase
-	  int nHitsToProcess = nHits;
-	for(int i=nHits-1; i>-1; i--){
+     bucketcounter++;
+     eventToProcess.New(clk,0);
+     EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
+     //       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
+     int nHits=eventToProcess.hits[0].size();
+     double * hPhase= new double[nHits];
+     for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
+     for (int j=0; j<NUMBER_OF_TELESCOPES; j++){					//Sort in BC from phase
+       int nHitsToProcess = nHits;
+       for(int i=nHits-1; i>-1; i--){
 		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;
 		    double ep = phase+j*DET_SPACING*1./29.98;
 		    int BC_sort=Telescopes[0].GetBC(hp);
@@ -241,9 +277,11 @@ int main(int argc, char **argv)
    for(; iTel!=Telescopes.end(); iTel++) iTel->StatOut();
    cout << "Time simulated:           "<<MAX_EVENT*25e-6<<" ms"<<endl;
    cout << "Total number of triggers: "<<ntrig <<"  ,  rate= "
-		<<(double)ntrig/(double)MAX_EVENT*40000<<" kHz"<<endl;
+	<<(double)ntrig/(double)MAX_EVENT*40000<<" kHz"<<endl;
+   cout <<"Total number of buckets " << bucketcounter << endl;
+   cout <<"Total number of blocked triggers " << blockedtriggers << endl;
+   cout <<"Total number of RESETS issued by test board " << resetcounter << endl;
 
-	
    if(WriteHisto){
 	   histoFile->cd();
 	   h1->Write();
@@ -541,6 +579,10 @@ void ReadSettings(char* fileName)
 			}
 			if(Parameter=="TRIGGER_BUCKET"){
 			        TRIGGER_BUCKET=atoi(Value.c_str());
+				continue;
+			}
+			if(Parameter=="RESETINTERVAL"){
+			        RESETINTERVAL=atoi(Value.c_str());
 				continue;
 			}
 			if(Parameter=="BUNCH_SPACING"){

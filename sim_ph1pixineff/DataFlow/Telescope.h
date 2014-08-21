@@ -52,6 +52,17 @@ public:
 	 */		
 	void Init(int id);
 	
+
+	/** @brief RESET the telescope
+	 *
+	 * Reset the entire Telescope at the same time
+	 *
+	 */
+	void Reset();
+
+
+
+
 	/** @brief Statistics output
 	 * 
 	 * Collects statistics of all ROCs and writes a summary to stdout.

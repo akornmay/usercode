@@ -18,15 +18,27 @@ void ROC::Init(int id, long int *bx)
 { 
    Id=id;
    bx_counter=bx;
-	for(int i=0; i<DCOLS_PER_ROC; i++) {
-		dcols[i].Init(i, Id, bx);
-	}
+   for(int i=0; i<DCOLS_PER_ROC; i++) {
+     dcols[i].Init(i, Id, bx);
+   }
    header=ROC_HEADER_LENGTH;
    token=dcols.begin();
    ReadoutBuffer.clear();
    triggers.clear();
 }
 
+void ROC::Reset()
+{
+  
+  for(int i=0; i<DCOLS_PER_ROC; i++) {
+    dcols[i].Reset();
+  }
+
+  token=dcols.begin();
+  ReadoutBuffer.clear();
+  triggers.clear();
+  
+}
 
 void ROC::AddHit(pxhit &hit)
 {

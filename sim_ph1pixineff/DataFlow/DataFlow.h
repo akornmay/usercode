@@ -55,6 +55,7 @@ int CHIPS_PER_LINK[2];
 //
 int TOKEN_DELAY;
 int TRIGGER_BUCKET;
+int RESETINTERVAL;
 //
 // method declarations
 //

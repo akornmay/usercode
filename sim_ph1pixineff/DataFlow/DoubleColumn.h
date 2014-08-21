@@ -208,11 +208,11 @@ public:
     * Send reset to TS and DB buffer. Counts number of hits lost and updates statistics. 
     * Reset double column logic.
     */	
+   void Reset();
    
-   void writeToTree();
    /** @brief Writes hit to tree
     */
-   void Reset();
+   void writeToTree();
 
    pixlist hits;          ///< list of hits in double column waiting for column drain
    pixlist pendinghits;   ///< list of hits in double column with not yet specified time stamp
