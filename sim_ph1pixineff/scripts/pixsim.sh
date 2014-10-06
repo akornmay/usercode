@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 echo "###########################"
 echo "# Running full simulation #"
 echo "###########################"
@@ -35,7 +35,7 @@ fi
 
 #QIE file to run number
 
-qiefile="/afs/cern.ch/work/a/akornmay/public/Simulation/QIEdata/RawData_spill$1.bin.root"
+export qiefile="/afs/cern.ch/work/a/akornmay/public/Simulation/QIEdata/RawData_spill$(printf %05d $1).bin.root"
 #looking for file
 if [ -f "$qiefile" ]
 then
@@ -67,7 +67,36 @@ source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.01/x86_64-slc5-gcc43-opt/root/
 g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
 echo
 #running program 
-../geantTracks/QIEsavehits $1
+#../geantTracks/QIEsavehits $1
 
 
 #here comes the DataFlow part
+
+simtree="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_input/simdataTree_RUN$(printf %05d $1)_test.root"
+
+outfile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_test.root"
+
+treefile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_test.root"
+
+#modify the steering file so the right inputfile is picked up
+sed -i "/^[^#]/ s%.*SIGNAL_FILENAME.*%        SIGNAL_FILENAME = $simtree %" $3
+#modify the steering file so the right output summary file is picked up
+sed -i "/^[^#]/ s%.*OUTPUT_FILENAME.*%        OUTPUT_FILENAME = $outfile %" $3
+#modify the steering file so the right pixel tree file is put out
+sed -i "/^[^#]/ s%.*PIX_TREE_FILE.*%        PIX_TREE_FILE = $treefile %" $3
+
+
+
+#../DataFlow/DataFlow $3
+
+
+#now the conversion to LCIO format
+#source LCIO environment
+echo "Sourcing LCIO environment"
+source ../../../dataflow2lcio/env.sh
+
+input="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_test.root"
+output="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_test.slcio"
+numberRocs=8
+
+../../../dataflow2lcio/dataflow2lcio $input $output $numberRocs
