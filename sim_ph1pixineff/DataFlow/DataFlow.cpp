@@ -29,13 +29,13 @@ int main(int argc, char **argv)
    Init(EmptyBC);			               // open hit files and create LHC bunch structure
 
 
-   std::vector<Telescope> Telescopes;
-   std::vector<Telescope>::iterator iTel;
-   Telescopes.resize(NUMBER_OF_TELESCOPES);
+   std::vector<Testboard> Testboards;
+   std::vector<Testboard>::iterator iTB;
+   Testboards.resize(NUMBER_OF_TELESCOPES);
    int j = 0;
-   for(iTel=Telescopes.begin(); iTel!=Telescopes.end(); iTel++)
+   for(iTB=Testboards.begin(); iTB!=Testboards.end(); iTB++)
      {
-       iTel->Init(j++);
+       iTB->Init(j++);
      }
    printf("we have %i Telescopes\n",j);
 
@@ -135,13 +135,11 @@ int main(int argc, char **argv)
 // 	if(event.trigger && SAVE_TREE){
 // 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
 // 	}
-	iTel=Telescopes.begin();
- 
+	iTB=Testboards.begin();
+	for(; iTB!=Testboards.end(); iTB++) iTB->AddHits(event);  // add hits to telescope
 
-	for(; iTel!=Telescopes.end(); iTel++) iTel->AddHits(event);  // add hits to telescope
-
-	iTel=Telescopes.begin();
-	for(; iTel!=Telescopes.end(); iTel++) iTel->Clock();    // advance clock in telescope
+	iTB=Testboards.begin();
+	for(; iTB!=Testboards.end(); iTB++) iTB->Clock();    // advance clock in telescope
 
 	
 	////////////////////////////////////////////////////////
@@ -153,36 +151,21 @@ int main(int argc, char **argv)
 	int trigger=0;                                                                      //we need to keep the minimal trigger gap to prevent double triggering a bucket
 
 
-	// if(ntrig != 0 && RESETINTERVAL != 0 && last_trigger == 0 && ntrig%RESETINTERVAL == 0)
-	//   {
-
-	//     cout <<" "<< RESETINTERVAL <<" "<< last_trigger <<" "<< ntrig <<" "<<  ntrig%RESETINTERVAL << endl;
-	//     resetcounter++;
-
-	//     iTel=Telescopes.begin();
-	//     for(; iTel!=Telescopes.end(); iTel++) 
-	//       {
-	// 	iTel->Reset();  // reset telescope
-	//       }
-
-	//   }
-
-
 	if(last_trigger==0 && (bucketcounter%588==TRIGGER_BUCKET || bucketcounter%588==(TRIGGER_BUCKET+1)))           // this event will be triggered at a specific bucket number
 	  {	  
 	    trigger=1;
 	    ntrig++;
-
+	    
 	    if(ntrig%RESETINTERVAL == 0) //don't send a trigger, instread send a reset
 	      {
 	
 		trigger =0;
 		resetcounter++;
 		
-		iTel=Telescopes.begin();
-		for(; iTel!=Telescopes.end(); iTel++) 
+		iTB=Testboards.begin();
+		for(; iTB!=Testboards.end(); iTB++) 
 		  {
-		    iTel->Reset();  // reset telescope
+		    iTB->Reset();  // reset telescope
 		  }
 	      }
 
@@ -223,7 +206,7 @@ int main(int argc, char **argv)
        for(int i=nHits-1; i>-1; i--){
 		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;
 		    double ep = phase+j*DET_SPACING*1./29.98;
-		    int BC_sort=Telescopes[0].GetBC(hp);
+		    int BC_sort=Testboards[0].GetBC(hp);
 		    if(BC_sort==0){
 			eventToProcess.hits[j][i].phase=hp+12.5;				//Save phase for hit
 			eventToProcess.hits[j][i].evtPhase=ep+12.5;
@@ -273,8 +256,8 @@ int main(int argc, char **argv)
    cout << "**********************************************"<<endl;
    cout << "*            Statistics output               *"<<endl;
    cout << "**********************************************"<<endl<< endl;
-   iTel=Telescopes.begin();
-   for(; iTel!=Telescopes.end(); iTel++) iTel->StatOut();
+   iTB=Testboards.begin();
+   for(; iTB!=Testboards.end(); iTB++) iTB->StatOut();
    cout << "Time simulated:           "<<MAX_EVENT*25e-6<<" ms"<<endl;
    cout << "Total number of triggers: "<<ntrig <<"  ,  rate= "
 	<<(double)ntrig/(double)MAX_EVENT*40000<<" kHz"<<endl;

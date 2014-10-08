@@ -8,8 +8,7 @@
 #include <TH2I.h>
 #include <TProfile.h>
 #include <TString.h>
-#include "Module.h"
-#include "Telescope.h"
+#include "Testboard.h"
 #include <iostream>
 #include <fstream>
 #include <streambuf>
