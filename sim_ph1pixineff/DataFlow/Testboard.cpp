@@ -46,6 +46,9 @@ void Testboard::Init(int id)
    last_token=ROCs.end();
    iWrite=iRead=0;
    for(int i=0; i<TELESCOPE_STACK_SIZE; i++) timeStamps[i]=-10000;
+  
+   ntrig = 0;
+   ntoken = 0;
 }
 
 void Testboard::Reset()
@@ -68,16 +71,19 @@ void Testboard::AddHits(Event &event)
 {
   if (event.trigger && triggerStack.size() < TELESCOPE_STACK_SIZE)
     {
+      ntrig++;
       AddTS(event.clock);
       for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++) iRoc->Trigger(event.clock);
     }
   hit_iterator hit;
   for(hit=event.hits[0].begin(); hit!=event.hits[0].end(); hit++)
-     {
-       hit->triggers_stacked = triggerStack.size();
-       ROCs[hit->roc].AddHit(*hit);
-       // hit->printhit();
-     }
+    {
+      hit->triggers_stacked = triggerStack.size();
+      hit->trigger_number = ntrig;
+      hit->token_number = ntoken;
+      ROCs[hit->roc].AddHit(*hit);
+      // hit->printhit();
+    }
 }
 
 void Testboard::AddTS(long TS)
@@ -155,6 +161,7 @@ void Testboard::Clock()
       triggerStack.pop_front();
       n_transfer = ROC_HEADER_LENGTH;
       READOUT=true;
+      ntoken++;
       token=first_token;
       RO_start=bx_counter;
       evtsize=0;

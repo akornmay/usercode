@@ -109,9 +109,13 @@ private:
 public:
    long ro_clocks;                            ///< cumulated duration of readout in LHC clocks
    long ro_pix;                               ///< Number of hits read out
-   long int bx_counter;                      ///< Bunch crossing counter
+   long int bx_counter;                       ///< Bunch crossing counter
    long RO_start;                             ///< Start time of readout
    int evtsize;                               ///< Size of event for a link
+
+   long ntrig;                                ///< number of how many triggers where send so far 
+   long ntoken;                               ///< number of how many tokens were send in total
+
 };
 
 
