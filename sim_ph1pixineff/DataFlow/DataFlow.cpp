@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 
 
    long unsigned int bucketcounter = 0;
+   long unsigned int bxcounter = 0;
    long unsigned int resetcounter = 0;
 
    double phase=0;					//Phase between Fermi and LHC clock
@@ -70,7 +71,14 @@ int main(int argc, char **argv)
      if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
      else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
      else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
+     if(ntrig == MAX_TRIGGER)
+       {
+	 cout<<"Maximum number of triggers reached. Terminating Simulation!" << endl;
+	 break;
+       }
+
      if(newBC){
+       bxcounter++;
        //	printf("Tick\n");
 // 	cout<<"NEW BC. Total hits : "<<event.hits[MIN_MOD-1].size() <<endl;
 // 	cout<<"NEW BC. Next hits : "<<(*nextEvent).hits[MIN_MOD-1].size() <<endl;
@@ -78,6 +86,8 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////////////////////
 	////////////PROCESSING EVENT FROM PREVIOUS BUNCH CROSSING ///////////////
 	/////////////////////////////////////////////////////////////////////////
+
+
 	
 	//all clusters
 	event.clusterize( false );
@@ -260,7 +270,7 @@ int main(int argc, char **argv)
    for(; iTB!=Testboards.end(); iTB++) iTB->StatOut();
    cout << "Time simulated:           "<<MAX_EVENT*25e-6<<" ms"<<endl;
    cout << "Total number of triggers: "<<ntrig <<"  ,  rate= "
-	<<(double)ntrig/(double)MAX_EVENT*40000<<" kHz"<<endl;
+	<<(double)ntrig/(double)bxcounter*40000<<" kHz"<<endl;
    cout <<"Total number of buckets " << bucketcounter << endl;
    cout <<"Total number of blocked triggers " << blockedtriggers << endl;
    cout <<"Total number of RESETS issued by test board " << resetcounter << endl;
@@ -472,6 +482,7 @@ void ReadSettings(char* fileName)
 // general settings
 //
    MAX_EVENT = 100000;                 // #events to be processed
+   MAX_TRIGGER = 369000;               // max triggers in one spill
    TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
    CreatePileUp = false;               // use hit file as is
    PEAK_LUMI = 1.0;                    // peak luminosity in 10^34
@@ -522,6 +533,10 @@ void ReadSettings(char* fileName)
 			}
 			if(Parameter=="MAX_EVENT"){
 				   MAX_EVENT=atol(Value.c_str());
+				   continue;
+			}
+			if(Parameter=="MAX_TRIGGER"){
+				   MAX_TRIGGER=atol(Value.c_str());
 				   continue;
 			}
 			if(Parameter=="PIX_TREE_FILE"){

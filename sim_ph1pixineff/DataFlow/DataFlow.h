@@ -22,6 +22,7 @@
 //
 
 long MAX_EVENT;                                 // #events to be processed
+long MAX_TRIGGER;
 double TRIGGER_RATE;                            // L1 trigger rate in kHz
 double SIGNAL_XSECTION;                         // signal (jet) X-section in mb
 double TOTAL_XSECTION;                          // MinBias X-section in mb
