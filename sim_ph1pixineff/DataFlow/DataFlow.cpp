@@ -21,7 +21,7 @@ int main(int argc, char **argv)
    int last_trigger=0;
    int ntrig=0;				            // count total number of triggers sent
    int blockedtriggers = 0;                      //count of triggers blocked by trigger rules
-	
+   int event_number = 0;
    TRandom3 rndm(93657);		         // random number generator
 
    layer = LAYER;			               // analyze layer number LAYER as specified in steering file
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	  {	  
 	    trigger=1;
 	    ntrig++;
-	    
+
 	    if(ntrig%RESETINTERVAL == 0) //don't send a trigger, instread send a reset
 	      {
 	
@@ -738,6 +738,7 @@ bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}
 void initSave(){
     pixFile = new TFile(PIX_TREE_FILE.c_str(),"RECREATE");
     pixTree = new TTree("hitTree","hits from simulation");
+    pixTree->Branch("event_number",&pStruct.event_number,"event_number/i");
     pixTree->Branch("TS",&pStruct.TS,"TS/L");
     pixTree->Branch("roc",&pStruct.roc,"roc/I");
     pixTree->Branch("row",&pStruct.myrow,"myrow/I");
@@ -760,26 +761,27 @@ void endSave(){
     cout<<"done !"<<endl;
 }
 void saveHit(pxhit * hit){
-    
-    	pStruct.TS=(*hit).timeStamp;
-	pStruct.roc=(*hit).roc;
-	pStruct.myrow=(*hit).myrow;
-	pStruct.mycol=(*hit).mycol;
-	pStruct.vcal=(*hit).vcal;
-	pStruct.pulseHeight=(*hit).pulseHeight;
-	pStruct.phase=(*hit).phase;
-	
-	pStruct.trigger_number=(*hit).trigger_number;
-	pStruct.token_number=(*hit).token_number;
-	pStruct.triggers_stacked=(*hit).triggers_stacked;
-	pStruct.trigger_phase=(*hit).trigger_phase;
-	pStruct.data_phase=(*hit).data_phase;
-	pStruct.status=(*hit).status;
-	
-	pixTree->Fill();
+  pStruct.event_number = (*hit).event_number;   
+  
+  pStruct.TS=(*hit).timeStamp;
+  pStruct.roc=(*hit).roc;
+  pStruct.myrow=(*hit).myrow;
+  pStruct.mycol=(*hit).mycol;
+  pStruct.vcal=(*hit).vcal;
+  pStruct.pulseHeight=(*hit).pulseHeight;
+  pStruct.phase=(*hit).phase;
+  
+  pStruct.trigger_number=(*hit).trigger_number;
+  pStruct.token_number=(*hit).token_number;
+  pStruct.triggers_stacked=(*hit).triggers_stacked;
+  pStruct.trigger_phase=(*hit).trigger_phase;
+  pStruct.data_phase=(*hit).data_phase;
+  pStruct.status=(*hit).status;
+  
+  pixTree->Fill();
 }
 
 void saveHits(hit_vector * hits){
-    for(int i=0; i<hits->size(); i++) saveHit(&((*hits)[i]));
+  for(int i=0; i<hits->size(); i++) saveHit(&((*hits)[i]));
 }
 

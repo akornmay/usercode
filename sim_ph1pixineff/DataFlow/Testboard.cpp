@@ -49,6 +49,7 @@ void Testboard::Init(int id)
   
    ntrig = 0;
    ntoken = 0;
+   evtnr = 0;
 }
 
 void Testboard::Reset()
@@ -72,12 +73,36 @@ void Testboard::AddHits(Event &event)
   if (event.trigger && triggerStack.size() < TELESCOPE_STACK_SIZE)
     {
       ntrig++;
+      evtnr++;
       AddTS(event.clock);
       for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++) iRoc->Trigger(event.clock);
+      
+      if(event.hits[0].size()==0)
+	{
+	  pxhit phit;
+	  phit.event_number = evtnr;
+	  phit.timeStamp=event.clock;
+	  phit.pulseHeight=-1;
+	  phit.vcal=-1;
+	  phit.roc=-1;
+	  phit.row=-1;
+	  phit.dcol=-1;
+	  phit.myrow = -1;
+	  phit.mycol = -1;
+	  phit.flux = 0;	  
+	  phit.triggers_stacked = triggerStack.size();
+	  phit.trigger_number = ntrig;
+	  phit.token_number = ntoken;
+
+	  //phit.printhit();
+	  saveHit(&phit);
+	}
     }
+  
   hit_iterator hit;
   for(hit=event.hits[0].begin(); hit!=event.hits[0].end(); hit++)
     {
+      hit->event_number = evtnr;
       hit->triggers_stacked = triggerStack.size();
       hit->trigger_number = ntrig;
       hit->token_number = ntoken;

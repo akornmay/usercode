@@ -113,20 +113,22 @@ string PIX_TREE_FILE;					//Name of the file where data will be saved
 
 
 struct pixStruct{
-    int roc;
-    int mycol;
-    int myrow;
-    int vcal;
-    double pulseHeight;
-    double phase;
-    
-    long TS;
-    unsigned int trigger_number;
-    unsigned int token_number;
-    char triggers_stacked;
-    char trigger_phase;
-    char data_phase;
-    char status;
+  unsigned int event_number;
+  
+  int roc;
+  int mycol;
+  int myrow;
+  int vcal;
+  double pulseHeight;
+  double phase;
+  
+  long TS;
+  unsigned int trigger_number;
+  unsigned int token_number;
+  char triggers_stacked;
+  char trigger_phase;
+  char data_phase;
+  char status;
 };
 
 pixStruct pStruct;

@@ -10,46 +10,49 @@
 
 class pxhit {
  public:
-   double phase;
-   double evtPhase;
-   long timeStamp; 
-   bool trigger;
-   int roc;
-   int row;
-   int dcol;
-   int myrow;
-   int mycol;
-   bool ineff;
-   int CD_Select;
-   double pulseHeight;
-   float flux;
-   bool wrongTS;
-   int inefftype; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
-   int vcal;
+  unsigned int event_number;
+  
+  double phase;
+  double evtPhase;
+  long timeStamp; 
+  unsigned int dtime; //time difference between two events/triggers
+  bool trigger;
+  int roc;
+  int row;
+  int dcol;
+  int myrow;
+  int mycol;
+  bool ineff;
+  int CD_Select;
+  double pulseHeight;
+  float flux;
+  bool wrongTS;
+  int inefftype; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+  int vcal;
+  
+  unsigned int trigger_number;	
+  unsigned int token_number; 	
+  char triggers_stacked;	//To be implemented !
+  char trigger_phase;		//To be implemented !
+  char data_phase;		//To be implemented !
+  char status;			//To be implemented !
+  
    
-   unsigned int trigger_number;	//To be implemented !
-   unsigned int token_number; 	//To be implemented !
-   char triggers_stacked;	//To be implemented !
-   char trigger_phase;		//To be implemented !
-   char data_phase;		//To be implemented !
-   char status;			//To be implemented !
-
    
-   
-   void printhit();   
-   
-   bool operator < (const pxhit& b)const{
-     long aa=roc*1000+dcol;
-     long bb=b.roc*1000+b.dcol;
-     return (aa<bb);
-   };
-   void clear() { timeStamp=0;} ;
-   pxhit()
-     {
-       status=7;
-       ineff = false;
-       inefftype = 0;
-     }
+  void printhit();   
+  
+  bool operator < (const pxhit& b)const{
+    long aa=roc*1000+dcol;
+    long bb=b.roc*1000+b.dcol;
+    return (aa<bb);
+  };
+  void clear() { timeStamp=0;} ;
+  pxhit()
+    {
+      status=7;
+      ineff = false;
+      inefftype = 0;
+    }
 };
 
 typedef std::vector<pxhit> hit_vector;

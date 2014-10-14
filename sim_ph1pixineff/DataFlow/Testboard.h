@@ -113,6 +113,7 @@ public:
    long RO_start;                             ///< Start time of readout
    int evtsize;                               ///< Size of event for a link
 
+   unsigned int evtnr;
    long ntrig;                                ///< number of how many triggers where send so far 
    long ntoken;                               ///< number of how many tokens were send in total
 
