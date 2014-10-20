@@ -2,10 +2,10 @@
 echo "###########################"
 echo "# Running full simulation #"
 echo "###########################"
-if [ $# -ne 3 ]
+if [ $# -lt 3 ]
   then
     echo "No arguments supplied"
-    echo "Usage: /pixsim.sh [RunNumber] [Telescope] [DataFlow steer file]"
+    echo "Usage: /pixsim.sh [RunNumber] [Telescope] [DataFlow steer file] [optional:WBC] [optional:TOKEN_DELAY] [optional:TRIGGER_BUCKET]"
 fi
 
 echo RunNumber is $1
@@ -72,22 +72,75 @@ echo
 
 #here comes the DataFlow part
 
-simtree="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_input/simdataTree_RUN$(printf %05d $1)_test.root"
+simtree="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_input/simdataTree_RUN$(printf %05d $1).root"
 
-outfile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_test.root"
 
-treefile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_test.root"
+#modify the steering file to accept additional parameters for WBC and token delay
+tempfile=$steerfile
+tempfile2=$steerfile
+tempfile3=$steerfile
+if [ $# -gt 3 ]
+then
+    WBC="_WBC$(printf %03d $4).steer"
+    #new file name
+    tempfile=$(echo $tempfile | sed 's/\(.*\)\..*/\1/')$WBC
+    echo $tempfile
+    cp $3 $tempfile
+    tempfile3=$tempfile
+    echo "Setting WBC to $4" 
+    sed -i "/^[^#]/ s%.* WBC .*%        WBC = $4 %" $tempfile
+
+fi
+
+if [ $# -gt 4 ]
+then
+    TKDEL="_TKDEL$(printf %03d $5).steer"
+    #new file name
+    tempfile2=$(echo $tempfile | sed 's/\(.*\)\..*/\1/')$TKDEL
+    echo $tempfile2
+    mv $tempfile $tempfile2
+    tempfile3=$tempfile2
+    echo "Setting TOKEN_DELAY to $5"
+    sed -i "/^[^#]/ s%.*TOKEN_DELAY.*%        TOKEN_DELAY = $5 %" $tempfile2
+fi
+
+if [ $# -gt 5 ]
+then
+    TRBUCK="_TRBUCK$(printf %03d $6).steer"
+    #new file name
+    tempfile3=$(echo $tempfile2 | sed 's/\(.*\)\..*/\1/')$TRBUCK
+    echo $tempfile3
+    mv $tempfile2 $tempfile3    
+    echo "Setting TRIGGER_BUCKET to $6"
+    sed -i "/^[^#]/ s%.*TRIGGER_BUCKET.*%        TRIGGER_BUCKET = $6 %" $tempfile3
+fi
+
+#readback WBC, TKDEL and TRBUCK from file
+WBC=$(awk '!/^#/ && / WBC /{print $3}' $tempfile3)
+echo "WBC from file:" $WBC
+TKDEL=$(awk '!/^#/ && /TOKEN_DELAY/{print $3}' $tempfile3)
+echo "Token delay from file:" $TKDEL
+TRBUCK=$(awk '!/^#/ && /TRIGGER_BUCKET/{print $3}' $tempfile3)
+echo "Trigger bucket from file:" $TRBUCK
+
+
+outfile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+echo $outfile
+treefile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+echo $treefile
+
+
 
 #modify the steering file so the right inputfile is picked up
-sed -i "/^[^#]/ s%.*SIGNAL_FILENAME.*%        SIGNAL_FILENAME = $simtree %" $3
-#modify the steering file so the right output summary file is picked up
-sed -i "/^[^#]/ s%.*OUTPUT_FILENAME.*%        OUTPUT_FILENAME = $outfile %" $3
+sed -i "/^[^#]/ s%.*SIGNAL_FILENAME.*%        SIGNAL_FILENAME = $simtree %" $tempfile3
+#modify the steering file so the right output summary file is put out
+sed -i "/^[^#]/ s%.*OUTPUT_FILENAME.*%        OUTPUT_FILENAME = $outfile %" $tempfile3
 #modify the steering file so the right pixel tree file is put out
-sed -i "/^[^#]/ s%.*PIX_TREE_FILE.*%        PIX_TREE_FILE = $treefile %" $3
+sed -i "/^[^#]/ s%.*PIX_TREE_FILE.*%        PIX_TREE_FILE = $treefile %" $tempfile3
 
 
 
-#../DataFlow/DataFlow $3
+../DataFlow/DataFlow $tempfile3
 
 
 #now the conversion to LCIO format
@@ -95,8 +148,10 @@ sed -i "/^[^#]/ s%.*PIX_TREE_FILE.*%        PIX_TREE_FILE = $treefile %" $3
 echo "Sourcing LCIO environment"
 source ../../../dataflow2lcio/env.sh
 
-input="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_test.root"
-output="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_test.slcio"
+
+output="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
 numberRocs=8
 
-../../../dataflow2lcio/dataflow2lcio $input $output $numberRocs
+../../../dataflow2lcio/dataflow2lcio $treefile $output $numberRocs
+
+
