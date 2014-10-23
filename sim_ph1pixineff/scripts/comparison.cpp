@@ -255,16 +255,19 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   Pixels_per_Event_out->Draw("SAME");
 
   Hits_per_Event_sim->Scale(norm/Hits_per_Event_sim->Integral());
+  Hits_per_Event_sim->SetMaximum(100);
   Hits_per_Event_sim->SetLineColor(3);
   Hits_per_Event_sim->SetLineWidth(3);
   Hits_per_Event_sim->Draw("SAME");
 
   Hits_per_Event_ana->Scale(norm/Hits_per_Event_ana->Integral());
+  Hits_per_Event_ana->SetMaximum(100);
   Hits_per_Event_ana->SetLineColor(4);
   Hits_per_Event_ana->SetLineWidth(3);
   Hits_per_Event_ana->Draw("SAME");
 
   Pixels_per_Event_in->Scale(norm/Pixels_per_Event_in->Integral());
+  Pixels_per_Event_in->SetMaximum(100);
   Pixels_per_Event_in->SetLineColor(1);
   Pixels_per_Event_in->SetLineWidth(3);
   Pixels_per_Event_in->Draw("SAME");
@@ -279,7 +282,82 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   leg1->Draw();
 
 
-  //  c2->Update();
+  c2->Update();
+
+  c2->SaveAs("comp_Pixels_per_Event.pdf");
+
+  /*
+   *  Now some more plots
+   */
+
+  //hit map
+  //simulated data
+  TCanvas * c3 = new TCanvas("c3","c3",1200,600);
+  c3->Divide(2,1);
+  c3->cd(1);
+  
+  char histname[256];
+  sprintf(histname,"MyCMSPixelClusteringProcessor/detector_3/pixelPerEvent_d%i",ROC_DUT);
+
+  cout << histname << endl;
+
+  TH2D * Hit_Map_sim;
+
+
+  Hit_Map_sim=(TH2D*)simAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/hitMap_d3");
+  
+ 
+  Hit_Map_sim->SetTitle("Analysis of simulated data");
+  Hit_Map_sim->Draw("COLZ");
+  Hit_Map_sim->SetStats(0);
+  c3->Update();
+
+  //measured data
+
+  c3->cd(2);
+
+  TH2D * Hit_Map_ana;
+  
+
+  Hit_Map_ana=(TH2D*)realAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/hitMap_d3");
+  
+ 
+  Hit_Map_ana->SetTitle("Analysis of simulated data");
+  Hit_Map_ana->Draw("COLZ");
+  Hit_Map_ana->SetStats(0);
+
+  //cluster size
+  //simulated data 
+ TCanvas * c4 = new TCanvas("c4","c4",1200,600);
+  c4->Divide(2,1);
+  c4->cd(1);
+  
+  char histname[256];
+  sprintf(histname,"MyCMSPixelClusteringProcessor/detector_%i/clustersize_d%i",ROC_DUT,ROC_DUT);
+
+  cout << histname << endl;
+
+  TH1I * Clustersize_sim;
+
+
+  Clustersize_sim=(TH1I*)simAnaFile->Get(histname);
+  
+ 
+  Clustersize_sim->SetTitle("Analysis of simulated data");
+  Clustersize_sim->Draw();
+  c4->Update();
+
+  //measured data
+  c4->cd(2);
+  TH1I * Clustersize_ana;
+  Clustersize_ana=(TH1I*)realAnaFile->Get(histname);
+  
+ 
+  Clustersize_ana->SetTitle("Analysis of measured data");
+  Clustersize_ana->Draw();
+  c3->Update();
+
+
 
 
 }//comparison()
