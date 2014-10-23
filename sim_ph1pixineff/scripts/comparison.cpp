@@ -103,7 +103,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
 
 
-  TH1I * Hits_per_ROC_in = new TH1I("Hits_per_ROC", "Hits per ROC",20,0,20);
+  TH1I * Pixels_per_Event_in = new TH1I("Pixels per Event", "DataFlow input",20,0,20);
   unsigned int temp_evtn=-1;
 
   int ROC_DUT = 3;
@@ -120,7 +120,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
       temp_evtn = Event_in;
       if(roc_in == -1)
 	{
-	  Hits_per_ROC->Fill(0);
+	  Pixels_per_Event_in->Fill(0);
 	  continue;
 	}
       else
@@ -139,29 +139,29 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 	    }
 
 	  --i;
-	  Hits_per_ROC->Fill(nhits);
+	  Pixels_per_Event_in->Fill(nhits);
 	  //	  cout << "Found event with " << nhits << "Hits on ROC " << ROC_DUT << endl;
 	  nhits = 0;
 
 	}
     }
 
-  Hits_per_ROC->Draw();
+  Pixels_per_Event_in->Draw();
   c1->Update();
   //second histogram
   cout << "Second histogramm" << endl;
 
-  TH1I * Hits_per_ROC_out = new TH1I("Hits_per_ROC_out","Hits per ROC",20,0,20);
+  TH1I * Pixels_per_Event_out = new TH1I("Pixels per Event","DataFlow output",20,0,20);
   for(int i = 0; i < DFoutput->GetEntries();++i)
     {
       DFoutput->GetEntry(i);
-      //      if(i%100 == 0) cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
-      cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
+      if(i%100 == 0) cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
+      //      cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
       temp_evtn = event_number;
       if(roc_out == -1)
 	{
 	  nhits = 0;
-	  Hits_per_ROC_out->Fill(nhits);
+	 Pixels_per_Event_out->Fill(nhits);
 	  continue;
 	}
       else
@@ -181,7 +181,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 	    }
 
 	  --i;
-	  Hits_per_ROC_out->Fill(nhits);
+	  Pixels_per_Event_out->Fill(nhits);
 	  //	  cout << "Found event with " << nhits << "Hits on ROC " << ROC_DUT << endl;
 	  nhits = 0;
 
@@ -190,7 +190,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
     }
 
   c1->cd(2);
-  Hits_per_ROC_out->Draw();
+  Pixels_per_Event_out->Draw();
   c1->Update();
 
   //picking up the 3rd histogram
@@ -210,6 +210,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   
   c1->cd(3);
   Hits_per_Event_sim->GetXaxis()->SetRangeUser(0,20);
+  Hits_per_Event_sim->SetTitle("Analysis of simulated data");
   Hits_per_Event_sim->Draw();
 
   c1->Update();
@@ -230,20 +231,55 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   
   c1->cd(4);
   Hits_per_Event_ana->GetXaxis()->SetRangeUser(0,20);
+  Hits_per_Event_ana->SetTitle("Analysis of measured data");
   Hits_per_Event_ana->Draw();
 
   c1->Update();
 
 
-
-
-
-
   c1->SaveAs("comp.pdf");
 
+  ///now for future references I'll try everything in one plot
+
+  TCanvas * c2 = new TCanvas("c2","c2",600,600);
+  c2->cd();
+  //  gStyle->SetOptStat(0);
+
+  double norm = 100.;
+  cout << Pixels_per_Event_in->Integral() << endl;
+  //Pixels_per_Event_out->GetXaxis()->SetLimits(0, norm);
+  Pixels_per_Event_out->Scale(norm/Pixels_per_Event_out->Integral());
+  Pixels_per_Event_out->SetMaximum(100);
+  Pixels_per_Event_out->SetLineColor(2);
+  Pixels_per_Event_out->SetLineWidth(3);
+  Pixels_per_Event_out->Draw("SAME");
+
+  Hits_per_Event_sim->Scale(norm/Hits_per_Event_sim->Integral());
+  Hits_per_Event_sim->SetLineColor(3);
+  Hits_per_Event_sim->SetLineWidth(3);
+  Hits_per_Event_sim->Draw("SAME");
+
+  Hits_per_Event_ana->Scale(norm/Hits_per_Event_ana->Integral());
+  Hits_per_Event_ana->SetLineColor(4);
+  Hits_per_Event_ana->SetLineWidth(3);
+  Hits_per_Event_ana->Draw("SAME");
+
+  Pixels_per_Event_in->Scale(norm/Pixels_per_Event_in->Integral());
+  Pixels_per_Event_in->SetLineColor(1);
+  Pixels_per_Event_in->SetLineWidth(3);
+  Pixels_per_Event_in->Draw("SAME");
+
+  TLegend * leg1 = new TLegend(0.75,0.9,0.35,0.75);
+  leg1->AddEntry(Pixels_per_Event_in,"DataFlow input","L");
+  leg1->AddEntry(Pixels_per_Event_out,"DataFlow output","L");
+  leg1->AddEntry(Hits_per_Event_sim,"Analysis of simulated data","L");
+  leg1->AddEntry(Hits_per_Event_ana,"Analysis of measured data","L");
 
 
+  leg1->Draw();
 
+
+  //  c2->Update();
 
 
 }//comparison()
