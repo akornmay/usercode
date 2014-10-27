@@ -296,7 +296,6 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   c3->Divide(2,1);
   c3->cd(1);
   
-  char histname[256];
   sprintf(histname,"MyCMSPixelClusteringProcessor/detector_3/pixelPerEvent_d%i",ROC_DUT);
 
   cout << histname << endl;
@@ -322,17 +321,20 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   Hit_Map_ana=(TH2D*)realAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/hitMap_d3");
   
  
-  Hit_Map_ana->SetTitle("Analysis of simulated data");
+  Hit_Map_ana->SetTitle("Analysis of measured data");
   Hit_Map_ana->Draw("COLZ");
   Hit_Map_ana->SetStats(0);
 
-  //cluster size
+  /*
+   *cluster size
+   */
+
   //simulated data 
- TCanvas * c4 = new TCanvas("c4","c4",1200,600);
+  TCanvas * c4 = new TCanvas("c4","c4",1200,600);
   c4->Divide(2,1);
   c4->cd(1);
   
-  char histname[256];
+
   sprintf(histname,"MyCMSPixelClusteringProcessor/detector_%i/clustersize_d%i",ROC_DUT,ROC_DUT);
 
   cout << histname << endl;
@@ -357,7 +359,49 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   Clustersize_ana->Draw();
   c3->Update();
 
+  
+  /*
+   *number of tracks
+   */
 
+  string simTrackFileName(SimFile);
+  simTrackFileName = simTrackFileName.replace(simTrackFileName.find("clustering"), sizeof("clustering")-1,"tracks");
+ 
+  char * filename = simTrackFileName.c_str();
+
+  cout << filename << endl;
+
+  TFile * simTrackFile = new TFile(filename,"READ");
+  if ( simTrackFile->IsOpen()) printf("Track file opened successfully\n");				    
+
+  TCanvas * c5 = new TCanvas("c5","c5",1200,600);
+  c5->Divide(2,1);
+  c5->cd(1);
+
+  sprintf(histname,"MyEUTelTestFitter/nTrack");
+ 
+  cout << histname << endl;
+
+  TH1D * NTracks_sim;
+  NTracks_sim=(TH1D*)simTrackFile->Get(histname);
+  NTracks_sim->SetTitle("Analysis of simulated data");
+  NTracks_sim->Draw();
+  c5->Update();
+
+  string anaTrackFileName(AnaFile);
+  anaTrackFileName = anaTrackFileName.replace(anaTrackFileName.find("clustering"), sizeof("clustering")-1,"tracks");
+  char * filename2 = anaTrackFileName.c_str();
+
+  TFile * anaTrackFile = new TFile(filename2,"READ");
+  if ( anaTrackFile->IsOpen()) printf("Analysis track file opened successfully\n");				    
+
+  c5->cd(2);
+
+  TH1D * NTracks_ana;
+  NTracks_ana=(TH1D*)anaTrackFile->Get(histname);
+  NTracks_ana->SetTitle("Analysis of measured data");
+  NTracks_ana->Draw();
+  c5->Update();
 
 
 }//comparison()
