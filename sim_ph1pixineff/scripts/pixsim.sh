@@ -6,6 +6,7 @@ if [ $# -lt 3 ]
   then
     echo "No arguments supplied"
     echo "Usage: /pixsim.sh [RunNumber] [Telescope] [DataFlow steer file] [optional:WBC] [optional:TOKEN_DELAY] [optional:TRIGGER_BUCKET]"
+    exit
 fi
 
 echo RunNumber is $1
@@ -31,17 +32,19 @@ then
 	echo "Track file found.($trackfile)"
 else
 	echo "Track file not found."
+	exit
 fi
 
 #QIE file to run number
 
-export qiefile="/afs/cern.ch/work/a/akornmay/public/Simulation/QIEdata/RawData_spill$(printf %05d $1).bin.root"
+export qiefile="../../../QIEdata/RawData_spill$(printf %05d $1).bin.root"
 #looking for file
 if [ -f "$qiefile" ]
 then
 	echo "QIEfile found.($qiefile)"
 else
 	echo "QIEfile not found."
+	exit
 fi
 
 echo "-------------------------"
@@ -54,25 +57,35 @@ then
 	echo "Steer file found.($steerfile)"
 else
 	echo "Steer file not found."
+	exit
 fi
 
 echo
 echo
 
-#source ROOT environment
-echo "Sourcing ROOT and compiling QIEsafehits macro" 
-echo
-source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.01/x86_64-slc5-gcc43-opt/root/bin/thisroot.sh
+echo "Compiling QIEsafehits macro" 
 #recompiling macro
-g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
+#g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
 echo
 #running program 
 #../geantTracks/QIEsavehits $1
 
+#retrieving run parameters from spread sheet
+echo "Retreiving original run parameters"
+
+origWBC=$(./readconfig.sh $1 WBC_0)
+echo "WBC: "$origWBC
+
+origTokLat=$(./readconfig.sh $1 trig_patt.token_latency)
+echo "Token latency: " $origTokLat
+
+origTriggerBucket=$(./readconfig_trigger.sh $1)
+echo "Trigger bucket: " $origTriggerBucket
+
 
 #here comes the DataFlow part
 
-simtree="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_input/simdataTree_RUN$(printf %05d $1).root"
+simtree="../../../DataFlow_input/simdataTree_RUN$(printf %05d $1).root"
 
 
 #modify the steering file to accept additional parameters for WBC and token delay
@@ -88,8 +101,34 @@ then
     cp $3 $tempfile
     tempfile3=$tempfile
     echo "Setting WBC to $4" 
-    sed -i "/^[^#]/ s%.* WBC .*%        WBC = $4 %" $tempfile
+    sed -i "/^[^#]/ s%.*WBC.*%        WBC = $4 %" $tempfile
 
+else 
+    WBC="_WBC$(printf %03d $origWBC).steer"
+    #new file name
+    tempfile=$(echo $tempfile | sed 's/\(.*\)\..*/\1/')$WBC
+    echo $tempfile
+    cp $3 $tempfile
+    tempfile3=$tempfile
+    echo "Setting WBC to $origWBC" 
+    sed -i "/^[^#]/ s%.*WBC.*%        WBC = $origWBC %" $tempfile
+
+    TKDEL="_TKDEL$(printf %03d $origTokLat).steer"
+    #new file name
+    tempfile2=$(echo $tempfile | sed 's/\(.*\)\..*/\1/')$TKDEL
+    echo $tempfile2
+    mv $tempfile $tempfile2
+    tempfile3=$tempfile2
+    echo "Setting TOKEN_DELAY to $origTokLat"
+    sed -i "/^[^#]/ s%.*TOKEN_DELAY.*%        TOKEN_DELAY = $origTokLat %" $tempfile2
+
+    TRBUCK="_TRBUCK$(printf %03d $origTriggerBucket).steer"
+    #new file name
+    tempfile3=$(echo $tempfile2 | sed 's/\(.*\)\..*/\1/')$TRBUCK
+    echo $tempfile3
+    mv $tempfile2 $tempfile3    
+    echo "Setting TRIGGER_BUCKET to $origTriggerBucket"
+    sed -i "/^[^#]/ s%.*TRIGGER_BUCKET.*%        TRIGGER_BUCKET = $origTriggerBucket %" $tempfile3
 fi
 
 if [ $# -gt 4 ]
@@ -124,9 +163,11 @@ TRBUCK=$(awk '!/^#/ && /TRIGGER_BUCKET/{print $3}' $tempfile3)
 echo "Trigger bucket from file:" $TRBUCK
 
 
-outfile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+
+
+outfile="../../../DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
 echo $outfile
-treefile="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+treefile="../../../DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
 echo $treefile
 
 
@@ -139,7 +180,6 @@ sed -i "/^[^#]/ s%.*OUTPUT_FILENAME.*%        OUTPUT_FILENAME = $outfile %" $tem
 sed -i "/^[^#]/ s%.*PIX_TREE_FILE.*%        PIX_TREE_FILE = $treefile %" $tempfile3
 
 
-
 ../DataFlow/DataFlow $tempfile3
 
 
@@ -149,7 +189,7 @@ echo "Sourcing LCIO environment"
 source ../../../dataflow2lcio/env.sh
 
 
-output="/afs/cern.ch/work/a/akornmay/public/Simulation/DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
+output="../../../DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
 numberRocs=8
 
 ../../../dataflow2lcio/dataflow2lcio $treefile $output $numberRocs
