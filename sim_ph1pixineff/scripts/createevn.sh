@@ -72,3 +72,15 @@ else
     echo "Cmspxltb-ana already exists"
 fi
 
+#############
+if [ ! -d "dataflow2lcio" ]
+then
+    echo "Checking out the DataFlow-to-LCIO code"
+    git clone https://github.com/akornmay/dataflow2lcio.git
+else
+    echo "DataFlow-to-LCIO already exists"
+fi
+
+echo "##########"
+echo "## DONE ##"
+echo "##########"
