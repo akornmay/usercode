@@ -65,10 +65,11 @@ echo
 
 echo "Compiling QIEsafehits macro" 
 #recompiling macro
-#g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
+g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
 echo
 #running program 
-#../geantTracks/QIEsavehits $1
+../geantTracks/QIEsavehits $1
+
 
 #retrieving run parameters from spread sheet
 echo "Retreiving original run parameters"

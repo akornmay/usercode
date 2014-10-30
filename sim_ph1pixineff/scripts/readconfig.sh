@@ -15,4 +15,4 @@ COL=$(awk 'NR == 1 {for (i = 1; i <= NF; i++)  {if ($i ~ /'$2'/) {print i}}}' /a
 
 #echo $COL
 
-awk '/'$1'/ {gsub(/,/,"");print $'"$COL"'}' /afs/cern.ch/work/m/mersi/public/tables/pxltbGuiLogPixelTestBoard1.csv
+awk '/^'$1'/ {gsub(/,/,"");print $'"$COL"'}' /afs/cern.ch/work/m/mersi/public/tables/pxltbGuiLogPixelTestBoard1.csv

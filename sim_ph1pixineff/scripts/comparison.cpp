@@ -110,12 +110,12 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   int nhits = 0;
   cout << "Total Entries input : " <<  DFinput->GetEntries() << endl;
   cout << "Total Entries output: " <<  DFoutput->GetEntries() << endl;
-  // for(int i = 0; i < DFinput->GetEntries(); ++i)
-  for(int i = 0; i < 100; ++i)
+  //for(int i = 0; i < DFinput->GetEntries(); ++i)
+  for(int i = 0; i < 5000000; ++i)
     {
 
       DFinput->GetEntry(i);
-      if(i%100 == 0) cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in <<   endl;
+      // if(i%100 == 0) cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in <<   endl;
       //cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in << " " << row_in << "|" << col_in << endl;
       temp_evtn = Event_in;
       if(roc_in == -1)
