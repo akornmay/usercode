@@ -29,7 +29,7 @@ void DoubleColumn::AddHit(pxhit &hit)
 {
   //hit.ineff = false;
    stat.total_hits++;
-   if(n_reset==0 && RO_Mode) {
+   if(n_reset==0 && RO_Mode && !TransparentMode) {
       stat.ro_Wait++;
       //printf("FILL: n_reset==0 && RO_Mode +1 \n" );
       ineffhits->Fill( hit.mycol , hit.myrow );
@@ -45,7 +45,7 @@ void DoubleColumn::AddHit(pxhit &hit)
    
    pixiter iHit;
    for(iHit=hits.begin(); iHit!=hits.end(); iHit++){
-      if(iHit->row==hit.row) {                   // pixel overwrite
+      if(iHit->row==hit.row && !TransparentMode) {                   // pixel overwrite
 	stat.px_overwrite++;
 	ineffhits->Fill( hit.mycol , hit.myrow );
 	//printf("FILL: iHit->row==hit.row \n");
@@ -63,15 +63,15 @@ void DoubleColumn::AddHit(pxhit &hit)
 	  return;             // pixel overwrite
 	}
    }
-   if(DB_Full) {                                 // book keeping only
+   if(DB_Full && !TransparentMode) {                                 // book keeping only
      stat.DB_overflow++;
-      ineffhits->Fill( hit.mycol , hit.myrow );
-      hit.ineff = true;
-      hit.inefftype = 3; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow
-      //printf("FILL: DB_Full \n");
+     ineffhits->Fill( hit.mycol , hit.myrow );
+     hit.ineff = true;
+     hit.inefftype = 3; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow
+     //printf("FILL: DB_Full \n");
       return;
    }
-   if(n_reset>0) {                               // book keeping only
+   if(n_reset>0 && !TransparentMode) {                               // book keeping only
       stat.ro_Reset++;
       ineffhits->Fill( hit.mycol , hit.myrow );
       hit.ineff = true;
@@ -79,7 +79,7 @@ void DoubleColumn::AddHit(pxhit &hit)
       //printf("FILL: stat.ro_Reset +1 [%i,%i]\n" , hit.mycol , hit.myrow );
       return;
    }
-   if(TS_Full) {                                 // book keeping
+   if(TS_Full && !TransparentMode) {                                 // book keeping
       stat.TS_overflow++;
       pendinghits.push_back(hit);                // buffer full, cannot set timestamp yet
       hit.ineff = true;
@@ -105,7 +105,7 @@ void DoubleColumn::AddHit(pxhit &hit)
       }
    }
 
-   if(TS_OK<0) {                                 // dcol busy, pixel gets assigned
+   if(TS_OK<0 && !TransparentMode ) {                                 // dcol busy, pixel gets assigned
       stat.dcol_busy++;                          // to wrong column drain
       hit.timeStamp=TrueTS;
       hit.trigger=wtg;
@@ -133,7 +133,7 @@ void DoubleColumn::Clock()
       if(n_reset==0) Reset();
       return;
    } 
-   if(RO_Mode) return;                           // do nothing, column is blocked
+   if(RO_Mode && !TransparentMode) return;                           // do nothing, column is blocked
    NewEvent = true;
    if(CD_Active){                                // intimeStamps.Initserts hit into DB and deletes it from px array
       if(CD_Status>CD_SELECT_B) CD_Active=GetNextPxHit();
@@ -154,7 +154,7 @@ void DoubleColumn::Clock()
       }
    }
    DB_Full = DB.IsFull();                        // initiate reset if data buffer full
-   if(DB_Full) n_reset=3;
+   if(DB_Full && !TransparentMode) n_reset=3;
    TS_Full = TS.IsFull();                        // block column if TS buffer full
 }
 
@@ -164,7 +164,7 @@ void DoubleColumn::Reset()
    TS.Reset();
    int nPix=DB.Reset();                          // number of lost hits in data buffer and pixel array
    for(pixlist::iterator iHit=hits.begin(); iHit!=hits.end(); iHit++) {
-      if(!iHit->wrongTS) 
+      if(!iHit->wrongTS && !TransparentMode) 
 	{
 	  iHit->ineff = true;
 	  ineffhits->Fill( iHit->mycol , iHit->myrow );
@@ -174,10 +174,10 @@ void DoubleColumn::Reset()
    }
    hits.clear();
    pendinghits.clear();
-   if(RO_Mode) {
+   if(RO_Mode &&  !TransparentMode) {
      stat.ro_Reset += nPix;
      //printf("FILL: RO_Mode stat.ro_Reset + %i , total now = %i \n" , nPix , stat.ro_Reset);
-   } else {
+   } else if(!TransparentMode) {
      stat.DB_overflow+=nPix;
      //printf("FILL: stat.DB_overflow \n");
    }
@@ -262,7 +262,7 @@ int DataBuffer::Reset()	                         // clears DataBuffer and return
 {
    int ntot=0;
    for(int i=0; i<entries; i++){
-       if(!hits[iRead++].wrongTS) {
+       if(!hits[iRead++].wrongTS && !TransparentMode) {
 	 hits[iRead-1].ineff = true;
 	 ineffhits->Fill( hits[iRead-1].mycol , hits[iRead-1].myrow );
 	 //printf("FILL: DataBuffer::Reset() [%i,%i] \n" , hits[iRead-1].mycol , hits[iRead-1].myrow );
