@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
   //create the output file
   char txt[256];
-  sprintf(txt,"simdataTree_RUN%i.root",runNumber);
+  sprintf(txt,"../../../DataFlow_input/simdataTree_RUN%i.root",runNumber);
   TFile *outputFile = new TFile(txt,"UPDATE");
 
   //create the tree to store the data
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
   //now also load the QIE data
   char buffer[256];  
   //  sprintf(buffer,"rootfiles/RawData_spill%i.bin.root",runNumber);
-  sprintf(buffer,"/afs/cern.ch/work/a/akornmay/private/Simulation/RawData_spill%i.bin.root",runNumber);
+  sprintf(buffer,"../../../QIEdata/RawData_spill%i.bin.root",runNumber);
   std::cout<<"Spill : " << runNumber << " (" << buffer << ")" << std::endl;
 
   TChain *tree_QIE = new TChain("tree_QIE");
