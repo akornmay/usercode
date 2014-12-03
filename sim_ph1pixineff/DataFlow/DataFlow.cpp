@@ -485,6 +485,7 @@ void ReadSettings(char* fileName)
    MAX_TRIGGER = 369000;               // max triggers in one spill
    TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
    CreatePileUp = false;               // use hit file as is
+   TransparentMode = false;               // use hit file as is
    PEAK_LUMI = 1.0;                    // peak luminosity in 10^34
    SIGNAL_XSECTION = 1.5;              // signal (jet) X-section in mb
    TOTAL_XSECTION = 80;                // MinBias X-section in mb
@@ -638,6 +639,10 @@ void ReadSettings(char* fileName)
 			}
 			if(Parameter=="CREATE_PILEUP"){
 				CreatePileUp=(bool)atoi(Value.c_str());
+				continue;
+			}
+			if(Parameter=="TRANSPARENT_MODE"){
+				TransparentMode=(bool)atoi(Value.c_str());
 				continue;
 			}
 			if(Parameter=="SIGNAL_FILENAME"){

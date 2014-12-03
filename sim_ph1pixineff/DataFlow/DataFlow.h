@@ -35,6 +35,7 @@ int LADDER;
 std::list<std::string> SignalFileNames;
 std::list<std::string> MinBiasFileNames;
 bool CreatePileUp;
+bool TransparentMode;
 int BUNCH_SPACING;
 int ALL_BUNCHES_FILLED;
 

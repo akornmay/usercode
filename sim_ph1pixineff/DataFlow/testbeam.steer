@@ -10,10 +10,12 @@
 	MAX_EVENT = 500000;			                         // #events to be processed
 	MAX_TRIGGER = 1000;			                         // #events to be processed
         CREATE_PILEUP = 0;                                               // generate pile-up
+        TRANSPARENT_MODE = 0;                                               // if turned on, makes ROCs transparent and eliminates inefficiencies
 	PEAK_LUMI = 0.7;			                         // peak luminosity in 10^34
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
-	OUTPUT_FILENAME = output.root	                         // Name of histo file
+	OUTPUT_FILENAME = output_transparent.root	                         	 // Name of histo file
+#	OUTPUT_FILENAME = output.root	                         	 // Name of histo file
 #	SIGNAL_FILENAME = ./OutputFile_100000.root        		 // File with signal hits.  
 	SIGNAL_FILENAME = ../geantTracks/simdataTree_RUN179540.root      // File with signal hits.  
 #       MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
