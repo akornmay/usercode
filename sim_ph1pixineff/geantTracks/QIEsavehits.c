@@ -163,8 +163,8 @@ int main(int argc, char *argv[]) {
 
   //  int graphcounter = 0;
   // Iterate over the Tree:
-  for(int turn = 0; turn < tree_QIE->GetEntries(); turn++) {
-    //for(int turn = 20000; turn < tree_QIE->GetEntries(); turn++) {
+  //  for(int turn = 0; turn < tree_QIE->GetEntries(); turn++) {
+  for(int turn = 20000; turn < 22000; turn++) {
     //for(int turn = 0; turn < 100; turn++) {
     //when we run out of 
     

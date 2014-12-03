@@ -27,6 +27,7 @@ extern int MIN_MOD, MAX_MOD;
 extern std::list<std::string> SignalFileNames;
 extern std::list<std::string> MinBiasFileNames;
 extern bool CreatePileUp;
+extern bool TransparentMode;
 extern int ALL_BUNCHES_FILLED;                          // 1: all bunches are filled; 0: only certain bunches are filled
 extern double PIX_SIGMA;				//Spread of pixel clock (in ns)
 extern double DET_SPACING;				//distance between det for phase assignment
