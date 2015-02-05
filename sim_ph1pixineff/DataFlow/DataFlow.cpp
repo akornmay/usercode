@@ -753,7 +753,6 @@ bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}
 void initSave(){
     pixFile = new TFile(PIX_TREE_FILE.c_str(),"RECREATE");
     pixTree = new TTree("hitTree","hits from simulation");
-    pixTree->SetDirectory(pixFile);
     pixTree->Branch("event_number",&pStruct.event_number,"event_number/i");
     pixTree->Branch("TS",&pStruct.TS,"TS/L");
     pixTree->Branch("roc",&pStruct.roc,"roc/I");
@@ -774,11 +773,8 @@ void initSave(){
     std::string TRANSPARENT_PIX_TREE_FILE;
     TRANSPARENT_PIX_TREE_FILE.append(PIX_TREE_FILE.begin(),PIX_TREE_FILE.end() - 5);
     TRANSPARENT_PIX_TREE_FILE.append("_TRANSPARENT.root");
-
-
     pixTransparentFile = new TFile(TRANSPARENT_PIX_TREE_FILE.c_str(),"RECREATE");
-    pixTransparentTree = new TTree("hitTree","hits from simulation");
-    pixTransparentTree->SetDirectory(pixTransparentFile);
+    pixTransparentTree = new TTree("hitTree","hits from transparent simulation");
     pixTransparentTree->Branch("event_number",&pStruct.event_number,"event_number/i");
     pixTransparentTree->Branch("TS",&pStruct.TS,"TS/L");
     pixTransparentTree->Branch("roc",&pStruct.roc,"roc/I");
@@ -798,15 +794,17 @@ void initSave(){
 }
 
 void endSave(){
-    cout<<"Writing Tree...";
-    pixTree->Write();
-    pixFile->Close();
-    cout<<"done !"<<endl;
-
-    cout<<"Writing Transparent Tree...";
-    pixTransparentTree->Write();
-    pixTransparentFile->Close();
-    cout<<"done !"<<endl;
+  pixFile->cd();
+  cout<<"Writing Tree...";
+  pixTree->Write();
+  pixFile->Close();
+  cout<<"done !"<<endl;
+  
+  pixTransparentFile->cd();
+  cout<<"Writing Transparent Tree...";
+  pixTransparentTree->Write();
+  pixTransparentFile->Close();
+  cout<<"done !"<<endl;
 }
 void saveHit(pxhit * hit){
   pStruct.event_number = (*hit).event_number;   
