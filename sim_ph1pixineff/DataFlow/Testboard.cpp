@@ -98,6 +98,7 @@ void Testboard::AddHits(Event &event)
 
 	  //phit.printhit();
 	  saveHit(&phit);
+	  saveTransparentHit(phit);
 	}
       else
 	{
