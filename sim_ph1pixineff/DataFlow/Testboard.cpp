@@ -145,7 +145,7 @@ void Testboard::Clock()
     if(iRead==TELESCOPE_STACK_SIZE) 
       {
 	iRead=0;                                     //circular buffer for iRead
-	cout << "iRead roll over " << TS  << endl;
+	//	cout << "iRead roll over " << TS  << endl;
 	++addcounter;
       } 
   } else TS=0;
