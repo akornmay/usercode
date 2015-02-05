@@ -75,8 +75,10 @@ void Testboard::AddHits(Event &event)
       ntrig++;
       evtnr++;
       AddTS(event.clock);
-      for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++) iRoc->Trigger(event.clock);
-      
+      for(roc_iter iRoc=ROCs.begin(); iRoc!=ROCs.end(); iRoc++)
+	{
+	  iRoc->Trigger(event.clock);
+	}      
       if(event.hits[0].size()==0)
 	{
 	  pxhit phit;
@@ -96,6 +98,18 @@ void Testboard::AddHits(Event &event)
 
 	  //phit.printhit();
 	  saveHit(&phit);
+	}
+      else
+	{
+	  hit_iterator hit;
+	  for(hit=event.hits[0].begin(); hit!=event.hits[0].end(); hit++)
+	    {
+	      hit->event_number = evtnr;
+	      hit->triggers_stacked = triggerStack.size();
+	      hit->trigger_number = ntrig;
+	      hit->token_number = ntoken;
+	      saveTransparentHit(*hit);
+	    }
 	}
     }
   
@@ -128,7 +142,12 @@ void Testboard::Clock()
   if(bx_counter==(WBC+5+TS)){                       // sets TS = timeStamp if expired, 0 otherwise
     delay = TOKEN_DELAY;
     timeStamps[iRead++]=-10000;                      //expired timeStamp
-    if(iRead==TELESCOPE_STACK_SIZE) iRead=0;         //circular buffer for iRead
+    if(iRead==TELESCOPE_STACK_SIZE) 
+      {
+	iRead=0;                                     //circular buffer for iRead
+	cout << "iRead roll over " << TS  << endl;
+	++addcounter;
+      } 
   } else TS=0;
   
   if(TS>0) 
@@ -189,6 +208,7 @@ void Testboard::Clock()
       ntoken++;
       token=first_token;
       RO_start=bx_counter;
+      //      cout << "RO_start " << RO_start << endl;
       evtsize=0;
       rodelay->Fill(bx_counter-RO_TS-WBC);
     }
@@ -196,6 +216,7 @@ void Testboard::Clock()
 
 void Testboard::StatOut()
 {
+  cout << "addcounter " << addcounter << endl;
 	char txt[50];
 	std::vector<statistics> stat;
 	stat.resize(CHIPS_PER_TELESCOPE);
@@ -211,7 +232,7 @@ void Testboard::StatOut()
 		mod_stat+=stat[i];
 	}
 	cout << endl<<endl<<"**********************************************************"<<endl<<endl;
-	sprintf(txt, "Module %d",Id);
+	sprintf(txt, "Telescope %d",Id);
 	mod_stat.PrintStat(txt);
 
    i=1;

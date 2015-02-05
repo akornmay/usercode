@@ -13,7 +13,7 @@ int main(int argc, char **argv)
    char inName[100];			            // read name of steering file from stdin
    if (argc<2) {
      	inName[0]='\0';
-   } else strcpy(inName,argv[1]);
+   } else strcpy(inName,argv[1]); 
    ReadSettings(inName);		         // read steering file
 	
    double p_trig=(double)(TRIGGER_RATE)/40000.;  // probability for trigger per clock
@@ -485,7 +485,6 @@ void ReadSettings(char* fileName)
    MAX_TRIGGER = 369000;               // max triggers in one spill
    TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
    CreatePileUp = false;               // use hit file as is
-   TransparentMode = false;               // use hit file as is
    PEAK_LUMI = 1.0;                    // peak luminosity in 10^34
    SIGNAL_XSECTION = 1.5;              // signal (jet) X-section in mb
    TOTAL_XSECTION = 80;                // MinBias X-section in mb
@@ -641,10 +640,6 @@ void ReadSettings(char* fileName)
 				CreatePileUp=(bool)atoi(Value.c_str());
 				continue;
 			}
-			if(Parameter=="TRANSPARENT_MODE"){
-				TransparentMode=(bool)atoi(Value.c_str());
-				continue;
-			}
 			if(Parameter=="SIGNAL_FILENAME"){
 				SignalFileNames.push_back(Value);
 				continue;
@@ -758,6 +753,7 @@ bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}
 void initSave(){
     pixFile = new TFile(PIX_TREE_FILE.c_str(),"RECREATE");
     pixTree = new TTree("hitTree","hits from simulation");
+    pixTree->SetDirectory(pixFile);
     pixTree->Branch("event_number",&pStruct.event_number,"event_number/i");
     pixTree->Branch("TS",&pStruct.TS,"TS/L");
     pixTree->Branch("roc",&pStruct.roc,"roc/I");
@@ -772,12 +768,44 @@ void initSave(){
     pixTree->Branch("trigger_phase",&pStruct.trigger_phase,"trigger_phase/B");
     pixTree->Branch("data_phase",&pStruct.data_phase,"data_phase/B");
     pixTree->Branch("status",&pStruct.status,"status/B");
+
+    
+    std::size_t pos = PIX_TREE_FILE.find(".");
+    std::string TRANSPARENT_PIX_TREE_FILE;
+    TRANSPARENT_PIX_TREE_FILE.append(PIX_TREE_FILE.begin(),PIX_TREE_FILE.end() - 5);
+    TRANSPARENT_PIX_TREE_FILE.append("_TRANSPARENT.root");
+
+
+    pixTransparentFile = new TFile(TRANSPARENT_PIX_TREE_FILE.c_str(),"RECREATE");
+    pixTransparentTree = new TTree("hitTree","hits from simulation");
+    pixTransparentTree->SetDirectory(pixTransparentFile);
+    pixTransparentTree->Branch("event_number",&pStruct.event_number,"event_number/i");
+    pixTransparentTree->Branch("TS",&pStruct.TS,"TS/L");
+    pixTransparentTree->Branch("roc",&pStruct.roc,"roc/I");
+    pixTransparentTree->Branch("row",&pStruct.myrow,"myrow/I");
+    pixTransparentTree->Branch("col",&pStruct.mycol,"mycol/I");
+    pixTransparentTree->Branch("vcal",&pStruct.vcal,"vcal/I");
+    pixTransparentTree->Branch("pulseHeight",&pStruct.pulseHeight,"pulseHeight/D");
+    pixTransparentTree->Branch("phase",&pStruct.phase,"phase/D");
+    pixTransparentTree->Branch("trigger_number",&pStruct.trigger_number,"trigger_number/i");
+    pixTransparentTree->Branch("token_number",&pStruct.token_number,"token_number/i");
+    pixTransparentTree->Branch("triggers_stacked",&pStruct.triggers_stacked,"triggers_stacked/B");
+    pixTransparentTree->Branch("trigger_phase",&pStruct.trigger_phase,"trigger_phase/B");
+    pixTransparentTree->Branch("data_phase",&pStruct.data_phase,"data_phase/B");
+    pixTransparentTree->Branch("status",&pStruct.status,"status/B");
+
+
 }
 
 void endSave(){
     cout<<"Writing Tree...";
     pixTree->Write();
     pixFile->Close();
+    cout<<"done !"<<endl;
+
+    cout<<"Writing Transparent Tree...";
+    pixTransparentTree->Write();
+    pixTransparentFile->Close();
     cout<<"done !"<<endl;
 }
 void saveHit(pxhit * hit){
@@ -800,8 +828,30 @@ void saveHit(pxhit * hit){
   
   pixTree->Fill();
 }
-
 void saveHits(hit_vector * hits){
   for(int i=0; i<hits->size(); i++) saveHit(&((*hits)[i]));
+}
+
+
+
+void saveTransparentHit(pxhit hit){
+  pStruct.event_number = hit.event_number;   
+  
+  pStruct.TS=hit.timeStamp;
+  pStruct.roc=hit.roc;
+  pStruct.myrow=hit.myrow;
+  pStruct.mycol=hit.mycol;
+  pStruct.vcal=hit.vcal;
+  pStruct.pulseHeight=hit.pulseHeight;
+  pStruct.phase=hit.phase;
+  
+  pStruct.trigger_number=hit.trigger_number;
+  pStruct.token_number=hit.token_number;
+  pStruct.triggers_stacked=hit.triggers_stacked;
+  pStruct.trigger_phase=hit.trigger_phase;
+  pStruct.data_phase=hit.data_phase;
+  pStruct.status=hit.status;
+  
+  pixTransparentTree->Fill();
 }
 

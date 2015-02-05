@@ -6,7 +6,8 @@ extern TH2I *IntTokenWait, *DcolTokenWait, *DCTokenWait;
 
 ROC::ROC():
    n_hits(0), newEvent(true), n_transfer(0), n_hits_ro(0), newDcol(true),
-   newChip(true), RO_TS(-1)
+   newChip(true), RO_TS(-1),
+   return1(0),   return2(0),   return3(0),   return4(0),   return5(0)
 {
    dcols.resize(DCOLS_PER_ROC);
    header=ROC_HEADER_LENGTH;
@@ -25,6 +26,7 @@ void ROC::Init(int id, long int *bx)
    token=dcols.begin();
    ReadoutBuffer.clear();
    triggers.clear();
+   ++return5;
 }
 
 void ROC::Reset()
@@ -37,6 +39,7 @@ void ROC::Reset()
   token=dcols.begin();
   ReadoutBuffer.clear();
   triggers.clear();
+  ++return6;
   
 }
 
@@ -51,18 +54,28 @@ void ROC::Clock(){
 
    if(n_transfer>0) {
       n_transfer--;
+      ++total_transfer;
       return;
    }
    if(token==dcols.end()){
-      if(triggers.empty()) return;
+      if(triggers.empty())
+	{
+	  ++return1;
+	  return;
+	}
       RO_TS = triggers.front();
-      if(*bx_counter<RO_TS+WBC) return;
+      if(*bx_counter<RO_TS+WBC)
+	{
+	  ++return2;
+	  return;
+	}
       triggers.pop_front();
       token=dcols.begin();
       newChip=true;
    }
    if(ReadoutBuffer.size()==ROC_BUFFER_SIZE) {
-      return;
+     ++return3; 
+     return;
    }
    if(newChip){
       IntTokenWait->Fill(Id,*bx_counter-(RO_TS+WBC));
@@ -72,7 +85,11 @@ void ROC::Clock(){
    while(token!=dcols.end() && !token->Readout(RO_TS, hit)) {
       newDcol=true;
       token++;
-      if(token==dcols.end()) return;
+      if(token==dcols.end())
+	{
+	  ++return4; 
+	  return;
+	}
    }
 
    if(newDcol) {
@@ -97,6 +114,14 @@ bool ROC::Readout(long TS)
 
 void ROC::StatOut(statistics &stat)
 {
+  cout <<  "n_hits_ro " << n_hits_ro << endl;
+  cout <<  "return1 " << return1 << endl;
+  cout <<  "return2 " << return2 << endl;
+  cout <<  "return3 " << return3 << endl;
+  cout <<  "return4 " << return4 << endl;
+  cout <<  "return5 " << return5 << endl;
+  cout <<  "return6 " << return6 << endl;
+  cout <<  "total_transfer " << total_transfer << endl;
 	stat.Reset();
 	dcol_iter iDcol;
 	for(iDcol=dcols.begin(); iDcol!=dcols.end(); iDcol++)

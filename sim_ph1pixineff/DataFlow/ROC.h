@@ -91,6 +91,18 @@ class ROC
   bool newEvent;                      ///< Indicates the start of a new readout
   bool newDcol;
   bool newChip;
+
+  long return1;
+  long return2;
+  long return3;
+  long return4;
+  long return5;
+  long return6;
+  long return7;
+
+  long total_transfer;
+
+
 };
 
 
