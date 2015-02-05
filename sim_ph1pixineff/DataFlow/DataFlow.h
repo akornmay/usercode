@@ -35,7 +35,6 @@ int LADDER;
 std::list<std::string> SignalFileNames;
 std::list<std::string> MinBiasFileNames;
 bool CreatePileUp;
-bool TransparentMode;
 int BUNCH_SPACING;
 int ALL_BUNCHES_FILLED;
 
@@ -103,9 +102,13 @@ void initSave();
 void endSave();
 void saveHits(hit_vector * hits);
 void saveHit(pxhit * hit);
+void saveTransparentHit(pxhit hit);
 
 TTree * pixTree;					//Tree containing all detected hits
 TFile * pixFile;					//File containing previous tree
+
+TTree * pixTransparentTree;					//Tree containing all detected hits
+TFile * pixTransparentFile;					//File containing previous tree
 
 string PIX_TREE_FILE;					//Name of the file where data will be saved
 

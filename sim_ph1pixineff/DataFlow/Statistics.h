@@ -32,10 +32,13 @@ public:
 		px_fluence=0.;
 		px_ro=0.;
 		badPhase=0;
+		hits_seen=0;
+		inefficient_hits=0;
 	}
 	
 	statistics& operator=(statistics const & a){
 		total_hits=a.total_hits;
+		inefficient_hits=a.inefficient_hits;
 		px_overwrite=a.px_overwrite;
 		dcol_busy=a.dcol_busy;
 		TBM_busy=a.TBM_busy;
@@ -46,11 +49,13 @@ public:
 		px_fluence=a.px_fluence;
 		px_ro=a.px_ro;
 		badPhase=a.badPhase;
+		hits_seen=a.hits_seen;
 		return *this;
 	}
 	
 	statistics& operator+=(statistics const & a){
 		total_hits+=a.total_hits;
+		inefficient_hits+=a.inefficient_hits;
 		px_overwrite+=a.px_overwrite;
 		dcol_busy+=a.dcol_busy;
 		TBM_busy+=a.TBM_busy;
@@ -61,6 +66,7 @@ public:
 		px_fluence+=a.px_fluence;
 		px_ro+=a.px_ro;
 		badPhase+=a.badPhase;
+		hits_seen+=a.hits_seen;
 		return *this;
 	}
 	
@@ -68,6 +74,8 @@ public:
 		cout << std::fixed;
 		cout << "Statistics for " << text << endl<<endl;
 		cout << "Total number of hits:      "<<total_hits<<endl;
+		cout << "Number of inefficient hits:      "<<inefficient_hits<<endl;
+		cout << "Total number of hits seen:      "<<hits_seen<<endl;
 		Print("Bad phase:                   ", badPhase);
 		Print("Pixel overwrite:             ", px_overwrite);
 		Print("Column drain busy (3rd hit): ", dcol_busy);
@@ -96,6 +104,8 @@ public:
 		cout << std::setprecision(0);
 	}
 	unsigned long total_hits;
+	unsigned long inefficient_hits;
+	unsigned long hits_seen;
 	unsigned long px_overwrite;
 	unsigned long dcol_busy;
 	unsigned long TBM_busy;

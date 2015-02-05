@@ -117,6 +117,9 @@ public:
    long ntrig;                                ///< number of how many triggers where send so far 
    long ntoken;                               ///< number of how many tokens were send in total
 
+   long addcounter;
+
+
 };
 
 
