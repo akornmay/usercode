@@ -7,54 +7,6 @@
 #include "CommonDefs.h"
 #include <list>
 
-class RootHits
-{
-public:
-	~RootHits();
-	void Init(int lr, std::string &name);
-	void GetHits(Event &event, int nEvents);
-private:
-	int nTrig;
-	
-	int vcal;
-	short int col, row, adc;
-	int event_nr;
-	float flux;
-	int ladder, layer;
-	unsigned int tree_event;
-	short tree_ladder, tree_module, panel;
-	UInt_t N_Entries;
-	UInt_t rPointer;
-	TFile *HitFile;
-	TTree *HitTree;
-};
-
-class RootReader
-{
-public:	
-	void Init(int layer);
-	void ReadEvent(Event &event);
-	
-private:
-	std::list<RootHits *> signalTrees, MB_Trees;
-	TRandom3 rndm;
-	double E_PileUp;						// expectation value for number of pile up events
-	double E_Signal;						// expectation value for number of signal events
-	std::list<RootHits *>::iterator iSignal, iMinBias;
-	
-};
-
-class ASCIIReader
-{
-public:
-	void Init(int layer);
-	void ReadEvent(Event &event);
-	void Terminate();	
-private:
-	ifstream is[4];
-};
-
-
 // this part is especially for the telescope simulation
 
 
@@ -63,6 +15,7 @@ class TelescopeHits
 public:
 	~TelescopeHits();
 	void Init(std::string &name);
+	void InitQIE(std::string &name);
 	void GetHits(Event &event, int nEvents);
 private:
 	int nTrig;
@@ -78,15 +31,30 @@ private:
 	UInt_t rPointer;
 	TFile *HitFile;
 	TTree *HitTree;
+
+	TRandom3* randomNo;
+
+
 };
 
 class TelescopeReader
 {
  public:
   void Init();
+  void InitQIE(std::string &name);
   void ReadEvent(Event &event);
+  int NumberOfParticles(double QIEintensity, double pedestal);
  private:
-  std::list<TelescopeHits *> signalTrees;
+
+  TFile* QIEFile;
+  TTree* QIETree;
+  float BeamIntensity[588];
+  int Turn;
+  int Bucket;
+  double MaxNoTracks;
+  long int QIEeventcounter;
+
+  TelescopeHits* signalTree;
 
   std::list<TelescopeHits *>::iterator iSignal;
 

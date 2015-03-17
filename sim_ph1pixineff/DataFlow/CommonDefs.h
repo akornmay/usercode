@@ -24,7 +24,7 @@ extern int LAYER;
 extern int DETECTOR;
 extern int LADDER;
 extern int MIN_MOD, MAX_MOD;
-extern std::list<std::string> SignalFileNames;
+extern std::string SignalFileName;
 extern std::list<std::string> MinBiasFileNames;
 extern bool CreatePileUp;
 extern int ALL_BUNCHES_FILLED;                          // 1: all bunches are filled; 0: only certain bunches are filled
@@ -85,5 +85,14 @@ const int ROC_HEADER_LENGTH(3);                         // ROC header length in 
 const int CLOCKS_PER_HIT(6);                            // #clocks per pixel hit
 
 enum {BPIX=0, FPIX};
+
+//
+// QIE readings
+//
+
+extern double BEAMINTENSITY_PARAM1;
+extern double BEAMINTENSITY_PARAM2;
+extern double BEAMINTENSITY_SCALING;
+extern std::string QIEfileName;
 
 #endif /*COMMON_DEFS_H_*/

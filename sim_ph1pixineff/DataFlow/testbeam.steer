@@ -10,15 +10,17 @@
 	MAX_EVENT = 500000;			                         // #events to be processed
 	MAX_TRIGGER = 1000;			                         // #events to be processed
         CREATE_PILEUP = 0;                                               // generate pile-up
-        TRANSPARENT_MODE = 0;                                               // if turned on, makes ROCs transparent and eliminates inefficiencies
 	PEAK_LUMI = 0.7;			                         // peak luminosity in 10^34
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
-	OUTPUT_FILENAME = output_transparent.root	                         	 // Name of histo file
-#	OUTPUT_FILENAME = output.root	                         	 // Name of histo file
+#	OUTPUT_FILENAME = output_transparent.root	                         	 // Name of histo file
+	OUTPUT_FILENAME = output.root	                         	 // Name of histo file
 #	SIGNAL_FILENAME = ./OutputFile_100000.root        		 // File with signal hits.  
-	SIGNAL_FILENAME = ../geantTracks/simdataTree_RUN179540.root      // File with signal hits.  
-#       MINBIAS_FILENAME = MinBias_Z2star_Pythia6_8TeV_noPU_digis.root   // File with MinBias hits.
+	SIGNAL_FILENAME = ./simdataTree_PixelTestBoard1_RUN0_TURNSTART0.root      // File with signal hits.  
+	QIE_FILENAME = /Users/Andreas/Work/geant4/geant4.10.00-install/share/Geant4-10.0.0/examples/basic/ROOT_PIXEL-TB-2013/QIEdata/rootfiles/RawData_spill179540.bin.root                                 // Name of the QIE file
+	BEAMINTENSITY_PARAM1 = 260.0
+	BEAMINTENSITY_PARAM2 = 320.0
+	BEAMINTENSITY_SCALING = 1.0
 #                                      				         // For several signal and/or MinBias files 
 #                                                                        //repeat these statements for each file
 #
@@ -54,4 +56,5 @@
 	
 # Save param	
 	SAVE_TREE =  1							//save tree
-	PIX_TREE_FILE = ./treeFile.root					//File where tree will be saved
+#	PIX_TREE_FILE = ./treeFile_transparent.root			//File where tree will be saved
+	PIX_TREE_FILE = ./treeFile.root			//File where tree will be saved

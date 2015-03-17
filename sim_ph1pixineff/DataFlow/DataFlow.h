@@ -32,7 +32,7 @@ int LAYER;
 int MIN_MOD, MAX_MOD;
 int DETECTOR;
 int LADDER;
-std::list<std::string> SignalFileNames;
+std::string SignalFileName;
 std::list<std::string> MinBiasFileNames;
 bool CreatePileUp;
 int BUNCH_SPACING;
@@ -56,6 +56,17 @@ int CHIPS_PER_LINK[2];
 int TOKEN_DELAY;
 int TRIGGER_BUCKET;
 int RESETINTERVAL;
+//
+// QIE readings
+//
+
+double BEAMINTENSITY_PARAM1;
+double BEAMINTENSITY_PARAM2;
+double BEAMINTENSITY_SCALING;
+std::string QIEfileName;
+
+
+
 //
 // method declarations
 //

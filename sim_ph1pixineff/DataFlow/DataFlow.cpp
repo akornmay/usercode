@@ -507,8 +507,7 @@ void ReadSettings(char* fileName)
 
    if(fileName[0]=='\0') {
 		cout<<"Using default parameters"<<endl<<endl;
-		SignalFileNames.push_back("InputFile.root");
-		//SignalFileNames.push_back("/home/kaestli/data/Phase1_1_1034.root");
+		SignalFileName = "InputFile.root";
 	}
 	else{  
 		ifstream is(fileName,std::ios::in);
@@ -641,7 +640,23 @@ void ReadSettings(char* fileName)
 				continue;
 			}
 			if(Parameter=="SIGNAL_FILENAME"){
-				SignalFileNames.push_back(Value);
+				SignalFileName = Value;
+				continue;
+			}
+			if(Parameter=="BEAMINTENSITY_PARAM1"){
+			  BEAMINTENSITY_PARAM1 = atof(Value.c_str());
+				continue;
+			}
+			if(Parameter=="BEAMINTENSITY_PARAM2"){
+			  BEAMINTENSITY_PARAM2 = atof(Value.c_str());
+				continue;
+			}
+			if(Parameter=="BEAMINTENSITY_SCALING"){
+			  BEAMINTENSITY_SCALING = atof(Value.c_str());
+				continue;
+			}
+			if(Parameter=="QIE_FILENAME"){
+				QIEfileName = Value;
 				continue;
 			}
 			if(Parameter=="MINBIAS_FILENAME"){
@@ -720,8 +735,7 @@ void ReadSettings(char* fileName)
 	cout <<"Physics parameters"<<endl;
 	cout <<"Events to be processed                  "<<MAX_EVENT<<endl;
 	std::list<std::string>::iterator iName;
-	for(iName=SignalFileNames.begin(); iName!=SignalFileNames.end(); iName++)
-			cout <<"Filename for signal                     "<<*iName<<endl;
+	cout <<"Filename for signal                     "<< SignalFileName <<endl;
 	if(CreatePileUp) {
       cout <<"Create pileup                           Yes"<<endl;
       cout <<"Peak luminosity                         "<<PEAK_LUMI<<"*10^34/cm2/s"<<endl;
