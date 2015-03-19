@@ -45,9 +45,6 @@ const int MINIMAL_TRIGGER_GAP(3);                       // minimal gap between t
 // module and ROC settings
 //
 
-extern int CHIPS_PER_LINK[2];
-extern int CHIPS_PER_MODULE;
-extern int LINKS_PER_MODULE;
 const unsigned int TBM_STACK_SIZE(16);                  // size of trigger stack in TBM
 const int DCOLS_PER_ROC(26);
 const unsigned int TS_BUFFER_SIZE(24);

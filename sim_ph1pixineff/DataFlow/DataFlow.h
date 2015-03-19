@@ -42,13 +42,6 @@ double PIX_SIGMA;				//Spread of pixel clock (in ns)
 double DET_SPACING;				//distance between det for phase assignment
 
 bool SAVE_TREE;
-//
-// module and ROC settings
-//
-
-int LINKS_PER_MODULE;
-int CHIPS_PER_MODULE;
-int CHIPS_PER_LINK[2];
 
 //
 //HRBT settings

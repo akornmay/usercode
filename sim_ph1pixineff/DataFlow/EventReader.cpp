@@ -92,13 +92,22 @@ void TelescopeHits::Init(std::string &name)
    sprintf(title,"Telescope");
    HitTree=(TTree*) HitFile->Get(title);
    
+   HitTree->SetBranchStatus("*",false);
+
+   HitTree->SetBranchStatus("vcal",true);
+   HitTree->SetBranchStatus("roc",true);
+   HitTree->SetBranchStatus("Event",true);
+   HitTree->SetBranchStatus("col",true);
+   HitTree->SetBranchStatus("row",true);
+   HitTree->SetBranchStatus("pulseHeight",true);
+
    HitTree->SetBranchAddress("vcal",&vcal);
    HitTree->SetBranchAddress("roc",&roc);
    HitTree->SetBranchAddress("Event",&tree_event);
    HitTree->SetBranchAddress("col",&col);
    HitTree->SetBranchAddress("row",&row);
    HitTree->SetBranchAddress("pulseHeight",&adc);
-   HitTree->SetBranchAddress("flux",&flux);
+   // HitTree->SetBranchAddress("flux",&flux);
    N_Entries=(UInt_t) HitTree->GetEntries();
    cout <<"File "<<name<<" opened."<<endl;
 
@@ -117,10 +126,12 @@ TelescopeHits::~TelescopeHits()
 
 void TelescopeHits::GetHits(Event &event, int nEvents)
 {
+  if(nEvents == 0) return;
 
   // we need to randomize which event we will be looking at
   // this should give me one of the entries in the tree
   long int randomEvent = (long int)(randomNo->Rndm() * N_Entries) ;
+  //  long int randomEvent = (long int)(0.17 * N_Entries) ;
   HitTree->GetEntry(randomEvent);
   //since we picked a random hit in the tree we run over events until the eventnumber changes
   long int randomEventNo = tree_event;
@@ -153,7 +164,7 @@ void TelescopeHits::GetHits(Event &event, int nEvents)
 	  event.flux = flux;
 	  event.hits[0].push_back(hit);
 	  allhits->Fill((int)col,(int) row);
-	  //	  hit.printhit();
+	  //hit.printhit();
 	  //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
       
 	}
