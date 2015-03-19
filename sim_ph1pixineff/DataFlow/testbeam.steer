@@ -6,11 +6,10 @@
 #
 # physics parameters
 #
-	MAX_EVENT = 200000000;			                         // #events to be processed
+	MAX_EVENT = 300000000;			                         // #events to be processed
 #	MAX_EVENT = 500000;			                         // #events to be processed
 	MAX_TRIGGER = 369000;			                         // #events to be processed
         CREATE_PILEUP = 0;                                               // generate pile-up
-        TRANSPARENT_MODE = 0;                                               // if turned on, makes ROCs transparent and eliminates inefficiencies
 	PEAK_LUMI = 0.7;			                         // peak luminosity in 10^34
 	SIGNAL_XSECTION = 1.5;		                                 // signal (jet) X-section in mb
 	TOTAL_XSECTION = 80.0;		                                 // MinBias X-section in mb
