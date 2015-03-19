@@ -20,7 +20,7 @@
  *  3)Analysis output
  */
 
-void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[256], char SimFile[256]){
+void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[256], char SimFile[256], int TriggerBucket, int RUN){
   //here goes the first file
   TChain * DFinput = new TChain("Telescope");
   DFinput->Add(DFin_location);
@@ -110,42 +110,44 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   int nhits = 0;
   cout << "Total Entries input : " <<  DFinput->GetEntries() << endl;
   cout << "Total Entries output: " <<  DFoutput->GetEntries() << endl;
-  //for(int i = 0; i < DFinput->GetEntries(); ++i)
-  for(int i = 0; i < 5000000; ++i)
+  long int maxEntries = DFinput->GetEntries();
+  for(int i = 0; i < maxEntries; ++i)
+    //for(int i = 0; i < 5000000; ++i)
     {
-
       DFinput->GetEntry(i);
-      // if(i%100 == 0) cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in <<   endl;
+      if(i%100000 == 0) cout << setprecision(2) << "Entry: " << i << "    " << (double)(i*100)/maxEntries << "%" << endl;
       //cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in << " " << row_in << "|" << col_in << endl;
       temp_evtn = Event_in;
-      if(roc_in == -1)
+      if(Event_in%588 == TriggerBucket)
 	{
-	  Pixels_per_Event_in->Fill(0);
-	  continue;
-	}
-      else
-	{
-	  while(Event_in == temp_evtn)
+	  if(roc_in == -1)
 	    {
-	      // cout << "I'm in the loop. ROC " << roc_in << endl;
-	      if(roc_in == ROC_DUT)
-		{
-		  ++nhits;
-		}
-	      ++i;
-	      if(i == DFinput->GetEntries()) break;
-	      DFinput->GetEntry(i);
-	      //	      cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in <<   endl;
+	      Pixels_per_Event_in->Fill(0);
+	      continue;
 	    }
-
+	  else
+	    {
+	      while(Event_in == temp_evtn)
+		{
+		  // cout << "I'm in the loop. ROC " << roc_in << endl;
+		  if(roc_in == ROC_DUT)
+		    {
+		      ++nhits;
+		    }
+		  ++i;
+		  if(i == maxEntries) break;
+		  DFinput->GetEntry(i);
+		  //	      cout << "Entry: " << i << "Event " << Event_in << "ROC " << roc_in <<   endl;
+		}
+	    }
 	  --i;
 	  Pixels_per_Event_in->Fill(nhits);
 	  //	  cout << "Found event with " << nhits << "Hits on ROC " << ROC_DUT << endl;
 	  nhits = 0;
-
 	}
     }
 
+    
   Pixels_per_Event_in->Draw();
   c1->Update();
   //second histogram
@@ -155,7 +157,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   for(int i = 0; i < DFoutput->GetEntries();++i)
     {
       DFoutput->GetEntry(i);
-      if(i%100 == 0) cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
+      //if(i%100 == 0) cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
       //      cout << "Entry: " << i << "Event " << event_number << "ROC " << roc_out <<   endl;
       temp_evtn = event_number;
       if(roc_out == -1)
@@ -205,12 +207,14 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
   TH1I * Hits_per_Event_sim;
 
-
   Hits_per_Event_sim=(TH1I*)simAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/pixelPerEvent_d3");
   
   c1->cd(3);
+ 
   Hits_per_Event_sim->GetXaxis()->SetRangeUser(0,20);
+ 
   Hits_per_Event_sim->SetTitle("Analysis of simulated data");
+ 
   Hits_per_Event_sim->Draw();
 
   c1->Update();
@@ -236,8 +240,9 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
   c1->Update();
 
-
-  c1->SaveAs("comp.pdf");
+  char txt[256];
+  sprintf(txt,"RUN%i_PixelsPerEvent.pdf",RUN);
+  c1->SaveAs(txt);
 
   ///now for future references I'll try everything in one plot
 
@@ -284,7 +289,9 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
   c2->Update();
 
-  c2->SaveAs("comp_Pixels_per_Event.pdf");
+
+  sprintf(txt,"RUN%i_PixelsPerEventNorm.pdf",RUN);
+  c2->SaveAs(txt);
 
   /*
    *  Now some more plots
@@ -305,7 +312,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
   Hit_Map_sim=(TH2D*)simAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/hitMap_d3");
   
- 
+
   Hit_Map_sim->SetTitle("Analysis of simulated data");
   Hit_Map_sim->Draw("COLZ");
   Hit_Map_sim->SetStats(0);
@@ -321,9 +328,16 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   Hit_Map_ana=(TH2D*)realAnaFile->Get("MyCMSPixelClusteringProcessor/detector_3/hitMap_d3");
   
  
+  Hit_Map_ana->GetXaxis()->SetRangeUser(1,50);
+  Hit_Map_ana->GetYaxis()->SetRangeUser(1,78);
   Hit_Map_ana->SetTitle("Analysis of measured data");
   Hit_Map_ana->Draw("COLZ");
   Hit_Map_ana->SetStats(0);
+
+  char txt[256];
+  sprintf(txt,"RUN%i_HitMap.pdf",RUN);
+  c3->SaveAs(txt);
+
 
   /*
    *cluster size
@@ -333,7 +347,7 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   TCanvas * c4 = new TCanvas("c4","c4",1200,600);
   c4->Divide(2,1);
   c4->cd(1);
-  
+  c4->SetLogy(1);
 
   sprintf(histname,"MyCMSPixelClusteringProcessor/detector_%i/clustersize_d%i",ROC_DUT,ROC_DUT);
 
@@ -345,20 +359,25 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   Clustersize_sim=(TH1I*)simAnaFile->Get(histname);
   
  
+  Clustersize_sim->GetXaxis()->SetRangeUser(0,20);
   Clustersize_sim->SetTitle("Analysis of simulated data");
   Clustersize_sim->Draw();
   c4->Update();
 
   //measured data
   c4->cd(2);
+  c4->SetLogy(1);
+
   TH1I * Clustersize_ana;
   Clustersize_ana=(TH1I*)realAnaFile->Get(histname);
   
- 
+  Clustersize_ana->GetXaxis()->SetRangeUser(0,20);
   Clustersize_ana->SetTitle("Analysis of measured data");
   Clustersize_ana->Draw();
-  c3->Update();
+  c4->Update();
 
+  sprintf(txt,"RUN%i_ClusterSize.pdf",RUN);
+  c4->SaveAs(txt);
   
   /*
    *number of tracks
@@ -376,8 +395,8 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
 
   TCanvas * c5 = new TCanvas("c5","c5",1200,600);
   c5->Divide(2,1);
+  c5->SetLogy(1);
   c5->cd(1);
-
   sprintf(histname,"MyEUTelTestFitter/nTrack");
  
   cout << histname << endl;
@@ -396,12 +415,17 @@ void comparison(char DFin_location[256], char DFout_location[256], char AnaFile[
   if ( anaTrackFile->IsOpen()) printf("Analysis track file opened successfully\n");				    
 
   c5->cd(2);
+  c5->SetLogy(1);
 
   TH1D * NTracks_ana;
   NTracks_ana=(TH1D*)anaTrackFile->Get(histname);
   NTracks_ana->SetTitle("Analysis of measured data");
   NTracks_ana->Draw();
   c5->Update();
+
+  sprintf(txt,"RUN%i_NumberOfTracks.pdf",RUN);
+  c5->SaveAs(txt);
+
 
 
 }//comparison()

@@ -19,12 +19,13 @@ echo "Data files:"
 #track file
 if [ $2 -eq 1 ]
 then 
-    trackfile="/afs/cern.ch/work/a/akornmay/public/hugeTrackSample_cleanoutfull.dat"
+    trackfile="../../../DataFlow_input/simdataTree_PixelTestBoard1_RUN$(printf %06d $1).root"
 elif [ $2 -eq 2 ]
 then 
-    trackfile="/afs/cern.ch/work/a/akornmay/public/hugeTrackSample_tilted_cleanoutfull.dat"
+    trackfile="../../../DataFlow_input/simdataTree_PixelTestBoard2_RUN$(printf %06d $1).root"
 else 
     echo INVALID telescope number!!!  
+    exit
 fi
 #looking for file
 if [ -f "$trackfile" ]
@@ -37,7 +38,7 @@ fi
 
 #QIE file to run number
 
-export qiefile="../../../QIEdata/RawData_spill$(printf %05d $1).bin.root"
+export qiefile="../../../QIEdata/RawData_spill$(printf %06d $1).bin.root"
 #looking for file
 if [ -f "$qiefile" ]
 then
@@ -63,22 +64,26 @@ fi
 echo
 echo
 
-echo "Compiling QIEsafehits macro" 
-#recompiling macro
-g++ `root-config --libs` ../geantTracks/QIEsavehits.c -I $ROOTSYS/include -o ../geantTracks/QIEsavehits
-echo
-#running program 
-../geantTracks/QIEsavehits $1
-
-
 #retrieving run parameters from spread sheet
 echo "Retreiving original run parameters"
-
-origWBC=$(./readconfig.sh $1 WBC_0)
-echo "WBC: "$origWBC
-
-origTokLat=$(./readconfig.sh $1 trig_patt.token_latency)
-echo "Token latency: " $origTokLat
+if [ $2 -eq 1 ]
+then 
+    origWBC=$(./readconfig_tel1.sh $1 WBC_0)
+    echo "WBC: "$origWBC
+    
+    origTokLat=$(./readconfig_tel1.sh $1 trig_patt.token_latency)
+    echo "Token latency: " $origTokLat
+elif [ $2 -eq 2 ]
+then 
+    origWBC=$(./readconfig_tel1.sh $1 WBC_0)
+    echo "WBC: "$origWBC
+    
+    origTokLat=$(./readconfig_tel1.sh $1 trig_patt.token_latency)
+    echo "Token latency: " $origTokLat
+else 
+    echo INVALID telescope number!!!  
+    exit
+fi
 
 origTriggerBucket=$(./readconfig_trigger.sh $1)
 echo "Trigger bucket: " $origTriggerBucket
@@ -86,7 +91,7 @@ echo "Trigger bucket: " $origTriggerBucket
 
 #here comes the DataFlow part
 
-simtree="../../../DataFlow_input/simdataTree_RUN$(printf %05d $1).root"
+simtree=$trackfile
 
 
 #modify the steering file to accept additional parameters for WBC and token delay
@@ -166,10 +171,12 @@ echo "Trigger bucket from file:" $TRBUCK
 
 
 
-outfile="../../../DataFlow_output/dataflowSUMMARY_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+outfile="../../../DataFlow_output/dataflowSUMMARY_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
 echo $outfile
-treefile="../../../DataFlow_output/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+treefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
 echo $treefile
+transparenttreefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT.root"
+echo $transparenttreefile
 
 
 
@@ -190,9 +197,14 @@ echo "Sourcing LCIO environment"
 source ../../../dataflow2lcio/env.sh
 
 
-output="../../../DataFlow_LCIO/dataflowPIXTREE_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
+output="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
 numberRocs=8
 
 ../../../dataflow2lcio/dataflow2lcio $treefile $output $numberRocs
 
+
+
+transparentoutput="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT.slcio"
+
+../../../dataflow2lcio/dataflow2lcio $transparenttreefile $transparentoutput $numberRocs
 

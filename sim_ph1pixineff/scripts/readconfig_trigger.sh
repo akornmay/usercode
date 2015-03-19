@@ -12,4 +12,4 @@ then
 fi
 
 
-awk '/'$1'/ {gsub(/,/,"");print $4}' /afs/cern.ch/work/m/mersi/public/tables/triggerData.csv
+awk '/'$1'/ {gsub(/,/,"");print strtonum("0x"$4)}' /afs/cern.ch/work/m/mersi/public/tables/triggerData.csv
