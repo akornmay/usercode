@@ -88,9 +88,6 @@ public:
 		Print("Reset after readout:         ", ro_Reset);
 		Print("Overall inefficiency:                       ", inefficiency());
 		cout << std::setprecision(2);
-		if(text.find("Module")!=string::npos){
-			px_fluence/=(double) CHIPS_PER_MODULE;
-		}
 		cout << "Pixel fluence:               "<<px_fluence<<" MHz/cm2"<<endl;
 	}
 	

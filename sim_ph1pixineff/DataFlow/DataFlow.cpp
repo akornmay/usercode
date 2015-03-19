@@ -478,274 +478,150 @@ void FillHisto(hit_vector &hits, int trigger)
 
 void ReadSettings(char* fileName)
 {
-//
-// general settings
-//
-   MAX_EVENT = 100000;                 // #events to be processed
-   MAX_TRIGGER = 369000;               // max triggers in one spill
-   TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
-   CreatePileUp = false;               // use hit file as is
-   PEAK_LUMI = 1.0;                    // peak luminosity in 10^34
-   SIGNAL_XSECTION = 1.5;              // signal (jet) X-section in mb
-   TOTAL_XSECTION = 80;                // MinBias X-section in mb
-   BUNCH_SPACING = 25;                 // 25ns bunch mode
-   DETECTOR = BPIX;                    // either 'BPIX' or 'FPIX'
-   LAYER = 1;                          // layer (BPIX) or disk (FPIX)
-   LADDER = 3;                         // ladder number (BPIX) or blade number (FPIX)
-   MIN_MOD = 1;                        // lowest module number (BPIX only)
-   MAX_MOD = 4;                        // highest module number (BPIX only)
-   LINKS_PER_MODULE = 1;               // number of links per module/panel
-   int SIDE = 1, DISK = 1;             // side and disk for FPIX
-   ALL_BUNCHES_FILLED = 0;             // fill all bunches?
-//
-// module and ROC settings
-//
+  //
+  // general settings
+  //
+  MAX_EVENT = 100000;                 // #events to be processed
+  MAX_TRIGGER = 369000;               // max triggers in one spill
+  TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
+  BUNCH_SPACING = 25;                 // 25ns bunch mode
+  DETECTOR = BPIX;                    // either 'BPIX' or 'FPIX'
+  //
+  // DAQ, telescope and ROC settings
+  //
 
-   WBC = 157;                      // trigger latency
-   LINKS_PER_MODULE = 2;
-	
+  WBC = 157;                      // trigger latency
 
-   if(fileName[0]=='\0') {
-		cout<<"Using default parameters"<<endl<<endl;
-		SignalFileNames.push_back("InputFile.root");
-		//SignalFileNames.push_back("/home/kaestli/data/Phase1_1_1034.root");
-	}
-	else{  
-		ifstream is(fileName,std::ios::in);
-		if(!is) {
-			cout << "Error: File \""<<fileName<<"\" doesn't exist."<<endl;
-			exit(0);
-		}
-		char buf[255];
-		std::string Parameter, Value;
-		char equal;
-		while(!is.eof() && !is.fail()) {
-			is>>Parameter;
-			if(Parameter[0]=='#'){
-				is.getline(buf,255);
-				continue;
-			}
-			is >> equal >> Value;
-			is.getline(buf,255);
-			if(equal!='=') {
-				cout << "Error: Syntax error for parameter "<<Parameter<<endl;
-				continue;
-			}
-			if(Parameter=="MAX_EVENT"){
-				   MAX_EVENT=atol(Value.c_str());
-				   continue;
-			}
-			if(Parameter=="MAX_TRIGGER"){
-				   MAX_TRIGGER=atol(Value.c_str());
-				   continue;
-			}
-			if(Parameter=="PIX_TREE_FILE"){
-				   PIX_TREE_FILE=Value;
-				   continue;
-			}
-			if(Parameter=="TRIGGER_RATE"){
-				TRIGGER_RATE=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="PIX_SIGMA"){
-				PIX_SIGMA=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="SAVE_TREE"){
-				SAVE_TREE=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="DET_SPACING"){
-				DET_SPACING=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="SIGNAL_XSECTION"){
-				SIGNAL_XSECTION=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="TOTAL_XSECTION"){
-				TOTAL_XSECTION=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="PEAK_LUMI"){
-				PEAK_LUMI=atof(Value.c_str());
-				continue;
-			}
-			if(Parameter=="TOKEN_DELAY"){
-			        TOKEN_DELAY=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="TRIGGER_BUCKET"){
-			        TRIGGER_BUCKET=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="RESETINTERVAL"){
-			        RESETINTERVAL=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="BUNCH_SPACING"){
-			  BUNCH_SPACING=atoi(Value.c_str());
-			  if(BUNCH_SPACING%25 !=0){
-			    cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
-			    exit(0);
-			  }
-			  continue;
-			}
-			if(Parameter=="WBC"){
-			  WBC=atol(Value.c_str());
-			  continue;
-			}
-			if(Parameter=="ALL_BUNCHES_FILLED"){
-			  ALL_BUNCHES_FILLED=atoi(Value.c_str());
-			  continue;
-			}
-			if(Parameter=="DETECTOR"){
-				if(Value=="BPIX") DETECTOR=BPIX;
-				else if(Value=="FPIX") DETECTOR=FPIX;
-				else {
-					cout<<"Error: Unknown detector part "<<Value<<endl;
-				    exit(0);
-				}
-				continue;
-			}
-			if(Parameter=="LAYER"){
-				LAYER=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="DISK"){
-				DISK=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="SIDE"){
-			  SIDE=atoi(Value.c_str());
-			  continue;
-			}
-			if(Parameter=="LADDER"){
-				LADDER=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="BLADE"){
-			  LADDER=atoi(Value.c_str());
-			  continue;
-			}
-			if(Parameter=="MIN_MODULE"){
-				MIN_MOD=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="MAX_MODULE"){
-				MAX_MOD=atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="CREATE_PILEUP"){
-				CreatePileUp=(bool)atoi(Value.c_str());
-				continue;
-			}
-			if(Parameter=="SIGNAL_FILENAME"){
-				SignalFileNames.push_back(Value);
-				continue;
-			}
-			if(Parameter=="MINBIAS_FILENAME"){
-				MinBiasFileNames.push_back(Value);
-				continue;
-			}
-			if(Parameter=="OUTPUT_FILENAME"){
-				HistoFileName=Value;
-				WriteHisto=true;
-				continue;
-			}
-			else {cout<<"Error: Undefined parameter "<<Parameter<<endl;
-				exit(0);
-			}
-		}
-	}
-	
-	if(DETECTOR==BPIX){
-		if(LAYER==3 || LAYER==4) {
-			LINKS_PER_MODULE=1;
-			CHIPS_PER_LINK[0]=16;
-			CHIPS_PER_LINK[1]=0;
-		}
-		else if(LAYER==1 || LAYER==2) {
-			LINKS_PER_MODULE=2;
-			CHIPS_PER_LINK[0]=8;
-			CHIPS_PER_LINK[1]=8;
-		}
-		else{
-			   cout<<"Error: BPIX LAYER must be between 1 and 4."<<endl;
-			   exit(0);
-		}
-	   if(MAX_MOD==-1) MAX_MOD=MIN_MOD;
-	   if(MIN_MOD>MAX_MOD){
-	      int tmp=MIN_MOD;
-	      MIN_MOD=MAX_MOD;
-	      MAX_MOD=tmp;
-	   }
-	   if(MIN_MOD<1 || MAX_MOD>4) {
-	      cout << "Error: Module numbers for BPIX must be within 1 and 4"<<endl;
-	      exit(0);
-	   }
-	}
-	if(DETECTOR==FPIX){
-      if(DISK!=1 && DISK!=2){
-			   cout<<"Error: FPIX DISK must be 1 or 2."<<endl;
-			   exit(0);
-		}
-      if(SIDE!=1 && SIDE!=2){
-            cout<<"Error: FPIX SIDE must be 1 or 2."<<endl;
-            exit(0);
+  if(fileName[0]=='\0') {
+    cout<<"Using default parameters"<<endl<<endl;
+    SignalFileName = "InputFile.root";
+  }
+  else{  
+    ifstream is(fileName,std::ios::in);
+    if(!is) {
+      cout << "Error: File \""<<fileName<<"\" doesn't exist."<<endl;
+      exit(0);
+    }
+    char buf[255];
+    std::string Parameter, Value;
+    char equal;
+    while(!is.eof() && !is.fail()) {
+      is>>Parameter;
+      if(Parameter[0]=='#'){
+	is.getline(buf,255);
+	continue;
       }
-      if(LADDER<1 || LADDER>24){
-            cout<<"Error: FPIX BLADE must be between 1 and 24."<<endl;
-            exit(0);
+      is >> equal >> Value;
+      is.getline(buf,255);
+      if(equal!='=') {
+	cout << "Error: Syntax error for parameter "<<Parameter<<endl;
+	continue;
       }
-	   LAYER=2*(SIDE-1)+DISK;
-	   MIN_MOD=1;
-	   MAX_MOD=1;
-		LINKS_PER_MODULE=2;
-		CHIPS_PER_LINK[0]=21;
-		CHIPS_PER_LINK[1]=24;
+      if(Parameter=="MAX_EVENT"){
+	MAX_EVENT=atol(Value.c_str());
+	continue;
+      }
+      if(Parameter=="MAX_TRIGGER"){
+	MAX_TRIGGER=atol(Value.c_str());
+	continue;
+      }
+      if(Parameter=="PIX_TREE_FILE"){
+	PIX_TREE_FILE=Value;
+	continue;
+      }
+      if(Parameter=="TRIGGER_RATE"){
+	TRIGGER_RATE=atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="PIX_SIGMA"){
+	PIX_SIGMA=atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="SAVE_TREE"){
+	SAVE_TREE=atoi(Value.c_str());
+	continue;
+      }
+      if(Parameter=="DET_SPACING"){
+	DET_SPACING=atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="TOKEN_DELAY"){
+	TOKEN_DELAY=atoi(Value.c_str());
+	continue;
+      }
+      if(Parameter=="TRIGGER_BUCKET"){
+	TRIGGER_BUCKET=atoi(Value.c_str());
+	continue;
+      }
+      if(Parameter=="RESETINTERVAL"){
+	RESETINTERVAL=atoi(Value.c_str());
+	continue;
+      }
+      if(Parameter=="BUNCH_SPACING"){
+	BUNCH_SPACING=atoi(Value.c_str());
+	if(BUNCH_SPACING%25 !=0){
+	  cout<<"Error: Bunch spacing must be a multiple of 25."<<endl;
+	  exit(0);
 	}
-	CHIPS_PER_MODULE=CHIPS_PER_LINK[0]+CHIPS_PER_LINK[1];
-
-	cout <<"Data loss simulation for ";
-	if(DETECTOR==BPIX) {
-	   cout <<"BPix layer "<<LAYER<<", ladder "<<LADDER;
-	   if(MAX_MOD==MIN_MOD) cout<<", module "<<MIN_MOD<<endl<<endl;
-	   else cout <<", modules "<<MIN_MOD<<" to "<<MAX_MOD<<endl<<endl;
-	} else {
-       cout << "FPix side "<<SIDE<<", disk "<<DISK<<", blade "<<LADDER<<endl<<endl;
-	}
-	cout <<"Software version "<<SOFTWARE_VERSION<<endl<<endl;
+	continue;
+      }
+      if(Parameter=="WBC"){
+	WBC=atol(Value.c_str());
+	continue;
+      }
+      if(Parameter=="SIGNAL_FILENAME"){
+	SignalFileName = Value;
+	continue;
+      }
+      if(Parameter=="BEAMINTENSITY_PARAM1"){
+	BEAMINTENSITY_PARAM1 = atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="BEAMINTENSITY_PARAM2"){
+	BEAMINTENSITY_PARAM2 = atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="BEAMINTENSITY_SCALING"){
+	BEAMINTENSITY_SCALING = atof(Value.c_str());
+	continue;
+      }
+      if(Parameter=="QIE_FILENAME"){
+	QIEfileName = Value;
+	continue;
+      }
+      if(Parameter=="MINBIAS_FILENAME"){
+	MinBiasFileNames.push_back(Value);
+	continue;
+      }
+      if(Parameter=="OUTPUT_FILENAME"){
+	HistoFileName=Value;
+	WriteHisto=true;
+	continue;
+      }
+      else {cout<<"Error: Undefined parameter "<<Parameter<<endl;
+	exit(0);
+      }
+    }
+  }
 	
-	cout <<"Physics parameters"<<endl;
-	cout <<"Events to be processed                  "<<MAX_EVENT<<endl;
-	std::list<std::string>::iterator iName;
-	for(iName=SignalFileNames.begin(); iName!=SignalFileNames.end(); iName++)
-			cout <<"Filename for signal                     "<<*iName<<endl;
-	if(CreatePileUp) {
-      cout <<"Create pileup                           Yes"<<endl;
-      cout <<"Peak luminosity                         "<<PEAK_LUMI<<"*10^34/cm2/s"<<endl;
-      cout <<"Signal (jet) X-section                  "<<SIGNAL_XSECTION<<" mb"<<endl;
-      cout <<"MinBias X-section                       "<<TOTAL_XSECTION<<" mb"<<endl;
-		for(iName=MinBiasFileNames.begin(); iName!=MinBiasFileNames.end(); iName++)
-				cout <<"Filename for MinBias                    "<<*iName<<endl;
-	    
-	} else cout <<"Create pileup                           No"<<endl;
-    cout <<"LHC running with "<<BUNCH_SPACING<<"ns bunch spacing"<<endl;
+  cout <<"Data loss simulation for ";
+  cout << SignalFileName << endl;
 
-    cout << endl<<"Trigger parameters"<<endl;
-    cout <<"L1 trigger rate                         "<< TRIGGER_RATE<<" kHz"<<endl;
-    cout <<"Trigger latency                         "<< WBC<<" LHC clocks"<<endl;
-    cout <<endl<<"Module and TBM parameters"<<endl;	
-	cout <<"Number of links per module              "<< LINKS_PER_MODULE<<endl;
-	if(DETECTOR==BPIX){
-		cout <<"ROCs per link                           "<< CHIPS_PER_LINK[0]<<endl;
-	} else {
-		cout <<"ROCs per link in panel 1                "<< CHIPS_PER_LINK[0]<<endl;
-		cout <<"ROCs per link in panel 2                "<< CHIPS_PER_LINK[1]<<endl;
-	}
-    cout << endl<<"Output filename                         " << HistoFileName<<endl;
-    cout <<endl<<endl;
+  cout <<"Software version "<<SOFTWARE_VERSION<<endl<<endl;
+   
+  cout <<"Physics parameters"<<endl;
+  cout <<"Events to be processed                  "<<MAX_EVENT<<endl;
+  cout <<"Triggers to be send                     "<<MAX_TRIGGER<<endl;
+  cout <<"Filename for signal                     "<< SignalFileName <<endl;
+
+  cout <<"LHC running with "<<BUNCH_SPACING<<"ns bunch spacing"<<endl;
+
+  cout << endl<<"Trigger parameters"<<endl;
+  cout <<"L1 trigger rate                         "<< TRIGGER_RATE<<" kHz"<<endl;
+  cout <<"WBC Trigger latency                         "<< WBC<<" LHC clocks"<<endl;
+
+  cout << endl<<"Output filename                         " << HistoFileName<<endl;
+  cout <<endl<<endl;
 }
 
 bool main_phaseOK(double phase){return(phase>9.5&&phase<14);}

@@ -32,7 +32,7 @@ int LAYER;
 int MIN_MOD, MAX_MOD;
 int DETECTOR;
 int LADDER;
-std::list<std::string> SignalFileNames;
+std::string SignalFileName;
 std::list<std::string> MinBiasFileNames;
 bool CreatePileUp;
 int BUNCH_SPACING;
@@ -42,13 +42,6 @@ double PIX_SIGMA;				//Spread of pixel clock (in ns)
 double DET_SPACING;				//distance between det for phase assignment
 
 bool SAVE_TREE;
-//
-// module and ROC settings
-//
-
-int LINKS_PER_MODULE;
-int CHIPS_PER_MODULE;
-int CHIPS_PER_LINK[2];
 
 //
 //HRBT settings
@@ -56,6 +49,17 @@ int CHIPS_PER_LINK[2];
 int TOKEN_DELAY;
 int TRIGGER_BUCKET;
 int RESETINTERVAL;
+//
+// QIE readings
+//
+
+double BEAMINTENSITY_PARAM1;
+double BEAMINTENSITY_PARAM2;
+double BEAMINTENSITY_SCALING;
+std::string QIEfileName;
+
+
+
 //
 // method declarations
 //

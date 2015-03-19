@@ -24,7 +24,7 @@ extern int LAYER;
 extern int DETECTOR;
 extern int LADDER;
 extern int MIN_MOD, MAX_MOD;
-extern std::list<std::string> SignalFileNames;
+extern std::string SignalFileName;
 extern std::list<std::string> MinBiasFileNames;
 extern bool CreatePileUp;
 extern int ALL_BUNCHES_FILLED;                          // 1: all bunches are filled; 0: only certain bunches are filled
@@ -45,9 +45,6 @@ const int MINIMAL_TRIGGER_GAP(3);                       // minimal gap between t
 // module and ROC settings
 //
 
-extern int CHIPS_PER_LINK[2];
-extern int CHIPS_PER_MODULE;
-extern int LINKS_PER_MODULE;
 const unsigned int TBM_STACK_SIZE(16);                  // size of trigger stack in TBM
 const int DCOLS_PER_ROC(26);
 const unsigned int TS_BUFFER_SIZE(24);
@@ -85,5 +82,14 @@ const int ROC_HEADER_LENGTH(3);                         // ROC header length in 
 const int CLOCKS_PER_HIT(6);                            // #clocks per pixel hit
 
 enum {BPIX=0, FPIX};
+
+//
+// QIE readings
+//
+
+extern double BEAMINTENSITY_PARAM1;
+extern double BEAMINTENSITY_PARAM2;
+extern double BEAMINTENSITY_SCALING;
+extern std::string QIEfileName;
 
 #endif /*COMMON_DEFS_H_*/
