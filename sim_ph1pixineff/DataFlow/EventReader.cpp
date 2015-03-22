@@ -38,7 +38,7 @@ void TelescopeReader::ReadEvent(Event &event)
   //  cout << "reading event with ";
   int nSignal = NumberOfParticles(BeamIntensity[Bucket], BeamIntensity[32]);   
   //cout << nSignal << " Tracks" << endl;
-  signalTree->GetHits(event, nSignal);
+  if(nSignal != 0) signalTree->GetHits(event, nSignal);
 
   ++QIEeventcounter;
   Turn = QIEeventcounter/588 ;
@@ -91,6 +91,7 @@ void TelescopeHits::Init(std::string &name)
    char title[128];
    sprintf(title,"Telescope");
    HitTree=(TTree*) HitFile->Get(title);
+   HitTree->SetParallelUnzip(true,1.0);
    
    HitTree->SetBranchStatus("*",false);
 
@@ -114,7 +115,9 @@ void TelescopeHits::Init(std::string &name)
    //initialize the random number generator
    randomNo = new TRandom3(0);
 
-}
+
+   fillEventLibrary();
+ }
 
 
 TelescopeHits::~TelescopeHits()
@@ -126,33 +129,65 @@ TelescopeHits::~TelescopeHits()
 
 void TelescopeHits::GetHits(Event &event, int nEvents)
 {
-  if(nEvents == 0) return;
-
-  // we need to randomize which event we will be looking at
-  // this should give me one of the entries in the tree
-  long int randomEvent = (long int)(randomNo->Rndm() * N_Entries) ;
-  //  long int randomEvent = (long int)(0.17 * N_Entries) ;
-  HitTree->GetEntry(randomEvent);
-  //since we picked a random hit in the tree we run over events until the eventnumber changes
-  long int randomEventNo = tree_event;
-  while(tree_event == randomEventNo)
+  //std::cout << "getHit" << std::endl;
+  for(int i=0; i<nEvents; i++)
     {
-      ++randomEvent;
-      if(randomEvent == N_Entries) randomEvent = 0;
-      HitTree->GetEntry(randomEvent);
-    }
-  //now we use the next event to be actually read out
-  pxhit hit;
-  HitTree->GetEntry(randomEvent);
-  if(randomEvent == N_Entries) randomEvent = 0;
-  int event_nr=tree_event;
-  for(int i=0; i<nEvents; i++){
-    do {
-      if(roc != -1)
-      	{
+      // we need to randomize which event we will be looking at
+      // this should give me one of the entries in the tree
+      
+      long int randomEvent = (long int)(randomNo->Rndm() * myLibrarySize) ;
+      
+      //we get the event from our event library
+      if(myEventLibrary[randomEvent][0].roc == -1)
+	{      
+	  //if we pick an empty event we set back the counter by one and pick a new random event
+	  --i;
+	  continue;
+
+	}
+      else
+	{
+	  event.hits[0] = myEventLibrary[randomEvent];
 	  
-	  hit.timeStamp=event.clock;
-	  hit.trigger=event.trigger;
+	  //now we just need to add some event informations to the hits
+	  for(int kk  = 0; kk < event.hits[0].size(); ++kk)
+	    {
+	      //    event.hits[0][kk].printhit();
+	      
+	      event.hits[0][kk].timeStamp=event.clock;
+	      event.hits[0][kk].trigger=event.trigger;
+	      event.hits[0][kk].flux = flux;
+	      allhits->Fill((int)event.hits[0][kk].mycol,(int)event.hits[0][kk].myrow);
+	      //hit.printhit();
+	      //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
+	    }
+	}
+    }
+  
+}
+
+
+void TelescopeHits::fillEventLibrary()
+{
+
+  pxhit hit;
+
+  int tempEventNo = -1;
+  int mapkey = 0;
+
+  for(int ii = 0; ii < N_Entries; )
+    {
+      HitTree->GetEntry(ii);
+      tempEventNo = tree_event;
+      //std::cout << "ii " << ii << endl;
+
+      hit_vector& ahitVector = myEventLibrary[mapkey];
+
+      while(tree_event == tempEventNo)
+	{
+	  //create the new hit
+	  //hit.timeStamp=event.clock;   these are things I have to add later to the hit
+	  //hit.trigger=event.trigger;
 	  hit.pulseHeight=adc;
 	  hit.vcal=vcal;
 	  hit.roc=roc;
@@ -161,25 +196,38 @@ void TelescopeHits::GetHits(Event &event, int nEvents)
 	  hit.myrow = row;
 	  hit.mycol = col;
 	  hit.flux = flux;	  
-	  event.flux = flux;
-	  event.hits[0].push_back(hit);
-	  allhits->Fill((int)col,(int) row);
-	  //hit.printhit();
-	  //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
-      
+	  //	  event.flux = flux;
+
+	  //and push it into our hitVector
+	  ahitVector.push_back(hit);
+	  //and go to the next event
+	  ++ii;
+	  if(ii == N_Entries) break;
+	  HitTree->GetEntry(ii);
 	}
 
-      HitTree->GetEntry(randomEvent++);
-      if(randomEvent == N_Entries) randomEvent = 0;
-    } while(tree_event==event_nr);
-    
-    event_nr=tree_event;
-  }
+      ++mapkey;
+      //std::cout << "mapkey " << mapkey << std::endl;
+    }
+
+
+  myLibrarySize = myEventLibrary.size();
+  
+  std::cout << "Size of map " << myEventLibrary.size() << std::endl;
+  /*
+  for(std::map<int,hit_vector>::iterator it = myEventLibrary.begin(); it != myEventLibrary.end(); ++it)
+    {
+      std::cout << "new event" << std::endl;
+      for(int kk = 0; kk < it->second.size(); ++kk)
+	{
+	  it->second[kk].printhit();
+	}
+
+    } 
+
+  */
 
 }
-
-
-
 
 
 
