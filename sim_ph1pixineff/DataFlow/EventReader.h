@@ -6,8 +6,11 @@
 #include "TTree.h"
 #include "CommonDefs.h"
 #include <list>
-
+#include <map>
 // this part is especially for the telescope simulation
+
+//typedef std::vector<TelescopeHits> TelescopeEvent;
+typedef std::map<int,hit_vector> EventLibrary;
 
 
 class TelescopeHits
@@ -17,6 +20,9 @@ public:
 	void Init(std::string &name);
 	void InitQIE(std::string &name);
 	void GetHits(Event &event, int nEvents);
+	void fillEventLibrary();
+
+
 private:
 	int nTrig;
 	
@@ -29,22 +35,26 @@ private:
 	unsigned int tree_event;
 	UInt_t N_Entries;
 	UInt_t rPointer;
+
 	TFile *HitFile;
 	TTree *HitTree;
-
 	TRandom3* randomNo;
 
+	EventLibrary myEventLibrary;
 
+	
 };
 
 class TelescopeReader
 {
+  //  friend class TelescopeHits;
  public:
   void Init();
   void InitQIE(std::string &name);
   void ReadEvent(Event &event);
   int NumberOfParticles(double QIEintensity, double pedestal);
- private:
+ 
+private:
 
   TFile* QIEFile;
   TTree* QIETree;
@@ -53,14 +63,14 @@ class TelescopeReader
   int Bucket;
   double MaxNoTracks;
   long int QIEeventcounter;
-
+  
   TelescopeHits* signalTree;
 
   std::list<TelescopeHits *>::iterator iSignal;
 
+
+
 };
-
-
 
 
 
