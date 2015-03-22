@@ -41,6 +41,7 @@ private:
 	TRandom3* randomNo;
 
 	EventLibrary myEventLibrary;
+	int myLibrarySize;
 
 	
 };

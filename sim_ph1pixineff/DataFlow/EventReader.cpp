@@ -117,10 +117,7 @@ void TelescopeHits::Init(std::string &name)
 
 
    fillEventLibrary();
-   int a;
-   std::cin >> a;
-   exit(0);
-}
+ }
 
 
 TelescopeHits::~TelescopeHits()
@@ -132,54 +129,41 @@ TelescopeHits::~TelescopeHits()
 
 void TelescopeHits::GetHits(Event &event, int nEvents)
 {
-  // we need to randomize which event we will be looking at
-  // this should give me one of the entries in the tree
-  long int randomEvent = (long int)(randomNo->Rndm() * N_Entries) ;
-  //  long int randomEvent = (long int)(0.17 * N_Entries) ;
-  HitTree->GetEntry(randomEvent);
-  //since we picked a random hit in the tree we run over events until the eventnumber changes
-  long int randomEventNo = tree_event;
-  while(tree_event == randomEventNo)
+  //std::cout << "getHit" << std::endl;
+  for(int i=0; i<nEvents; i++)
     {
-      ++randomEvent;
-      if(randomEvent == N_Entries) randomEvent = 0;
-      HitTree->GetEntry(randomEvent);
-    }
-  //now we use the next event to be actually read out
-  pxhit hit;
-  HitTree->GetEntry(randomEvent);
-  if(randomEvent == N_Entries) randomEvent = 0;
-  int event_nr=tree_event;
-  for(int i=0; i<nEvents; i++){
-    do {
-      if(roc != -1)
-      	{
-	  
-	  hit.timeStamp=event.clock;
-	  hit.trigger=event.trigger;
-	  hit.pulseHeight=adc;
-	  hit.vcal=vcal;
-	  hit.roc=roc;
-	  hit.row=row;
-	  hit.dcol=col/2;
-	  hit.myrow = row;
-	  hit.mycol = col;
-	  hit.flux = flux;	  
-	  event.flux = flux;
-	  event.hits[0].push_back(hit);
-	  allhits->Fill((int)col,(int) row);
-	  //hit.printhit();
-	  //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
+      // we need to randomize which event we will be looking at
+      // this should give me one of the entries in the tree
       
+      long int randomEvent = (long int)(randomNo->Rndm() * myLibrarySize) ;
+      
+      //we get the event from our event library
+      if(myEventLibrary[randomEvent][0].roc == -1)
+	{      
+	  //if we pick an empty event we set back the counter by one and pick a new random event
+	  --i;
+	  continue;
+
 	}
-
-      HitTree->GetEntry(randomEvent++);
-      if(randomEvent == N_Entries) randomEvent = 0;
-    } while(tree_event==event_nr);
-    
-    event_nr=tree_event;
-  }
-
+      else
+	{
+	  event.hits[0] = myEventLibrary[randomEvent];
+	  
+	  //now we just need to add some event informations to the hits
+	  for(int kk  = 0; kk < event.hits[0].size(); ++kk)
+	    {
+	      //    event.hits[0][kk].printhit();
+	      
+	      event.hits[0][kk].timeStamp=event.clock;
+	      event.hits[0][kk].trigger=event.trigger;
+	      event.hits[0][kk].flux = flux;
+	      allhits->Fill((int)event.hits[0][kk].mycol,(int)event.hits[0][kk].myrow);
+	      //hit.printhit();
+	      //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
+	    }
+	}
+    }
+  
 }
 
 
@@ -223,11 +207,11 @@ void TelescopeHits::fillEventLibrary()
 	}
 
       ++mapkey;
-      std::cout << "mapkey " << mapkey << std::endl;
+      //std::cout << "mapkey " << mapkey << std::endl;
     }
 
 
-
+  myLibrarySize = myEventLibrary.size();
   
   std::cout << "Size of map " << myEventLibrary.size() << std::endl;
   /*
