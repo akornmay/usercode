@@ -185,22 +185,26 @@ void TelescopeHits::fillEventLibrary()
 
       while(tree_event == tempEventNo)
 	{
-	  //create the new hit
-	  //hit.timeStamp=event.clock;   these are things I have to add later to the hit
-	  //hit.trigger=event.trigger;
-	  hit.pulseHeight=adc;
-	  hit.vcal=vcal;
-	  hit.roc=roc;
-	  hit.row=row;
-	  hit.dcol=col/2;
-	  hit.myrow = row;
-	  hit.mycol = col;
-	  hit.flux = flux;	  
-	  //	  event.flux = flux;
-
-	  //and push it into our hitVector
-	  ahitVector.push_back(hit);
-	  //and go to the next event
+	  //create the new hit if we are above the global pixel threshold
+	  if(adc >= THRESHOLD)
+	    {
+	      //hit.timeStamp=event.clock;   these are things I have to add later to the hit
+	      //hit.trigger=event.trigger;
+	      hit.pulseHeight=adc;
+	      hit.vcal=vcal;
+	      hit.roc=roc;
+	      hit.row=row;
+	      hit.dcol=col/2;
+	      hit.myrow = row;
+	      hit.mycol = col;
+	      hit.flux = flux;	  
+	      //	  event.flux = flux;
+	      
+	      //and push it into our hitVector 
+	      ahitVector.push_back(hit);
+	      //and go to the next event
+	    }
+	  
 	  ++ii;
 	  if(ii == N_Entries) break;
 	  HitTree->GetEntry(ii);

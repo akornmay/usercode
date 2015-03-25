@@ -28,6 +28,7 @@ double SIGNAL_XSECTION;                         // signal (jet) X-section in mb
 double TOTAL_XSECTION;                          // MinBias X-section in mb
 double PEAK_LUMI;                               // in 10^34
 long WBC;                                       // trigger latency
+int THRESHOLD;                                  // pixelThreshold calculated in DACs and compared agains pulseHeight
 int LAYER;
 int MIN_MOD, MAX_MOD;
 int DETECTOR;

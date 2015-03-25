@@ -566,7 +566,11 @@ void ReadSettings(char* fileName)
 	continue;
       }
       if(Parameter=="WBC"){
-	WBC=atol(Value.c_str());
+	WBC=atoi(Value.c_str());
+	continue;
+      }
+      if(Parameter=="THRESHOLD"){
+	THRESHOLD=atol(Value.c_str());
 	continue;
       }
       if(Parameter=="SIGNAL_FILENAME"){
