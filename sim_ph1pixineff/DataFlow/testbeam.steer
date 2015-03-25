@@ -23,6 +23,7 @@
 # Trigger and LHC parameters	
 #
 	WBC = 100;				                         // L1 trigger latency
+	THRESHOLD = 30;				                         // Global pixel threshold applied to all ROCs and pixels
 	TRIGGER_RATE = 10;			                         // L1 trigger rate in kHz
 	BUNCH_SPACING = 25;	                                         // Using 50 ns bunch structure
 

@@ -20,6 +20,7 @@ extern double TOTAL_XSECTION;                           // MinBias X-section in 
 extern double PEAK_LUMI;                                // in 10^34
 extern int BUNCH_SPACING;                               // spacing between filled LHC bunches
 extern long WBC;                                        // trigger latency
+extern int THRESHOLD;                                   // pixelThreshold calculated in DACs and compared agains pulseHeight
 extern int LAYER;
 extern int DETECTOR;
 extern int LADDER;
