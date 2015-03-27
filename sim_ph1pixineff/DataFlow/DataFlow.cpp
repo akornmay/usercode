@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 	 cout<<"Maximum number of triggers reached. Terminating Simulation!" << endl;
 	 break;
        }
-
      if(newBC){
        bxcounter++;
        //	printf("Tick\n");
@@ -190,7 +189,6 @@ int main(int argc, char **argv)
 	////////////////////////////////////////////////////////
 	////////Moving 'next' to evt and 'next²' to next////////
 	////////////////////////////////////////////////////////
-		
 	for(int i=0; i<NUMBER_OF_TELESCOPES; i++){
 	    for(int j=0; j<nextEvent->hits[i].size(); j++){
 		nextEvent->hits[i][j].timeStamp=event.clock;
@@ -689,7 +687,7 @@ void endSave(){
 void saveHit(pxhit * hit){
   pStruct.event_number = (*hit).event_number;   
   
-  pStruct.TS=(*hit).timeStamp;
+  pStruct.TS=((*hit).timeStamp * 25)/1000;
   pStruct.roc=(*hit).roc;
   pStruct.myrow=(*hit).myrow;
   pStruct.mycol=(*hit).mycol;
@@ -715,7 +713,7 @@ void saveHits(hit_vector * hits){
 void saveTransparentHit(pxhit hit){
   pStruct.event_number = hit.event_number;   
   
-  pStruct.TS=hit.timeStamp;
+  pStruct.TS=(hit.timeStamp *25)/1000;
   pStruct.roc=hit.roc;
   pStruct.myrow=hit.myrow;
   pStruct.mycol=hit.mycol;
