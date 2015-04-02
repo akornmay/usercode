@@ -19,10 +19,10 @@ echo "Data files:"
 #track file
 if [ $2 -eq 1 ]
 then 
-    trackfile="../../../DataFlow_input/simdataTree_PixelTestBoard1_RUN$(printf %06d $1).root"
+    trackfile="../../../DataFlow_input/Try7_PixelTestBoard1_TrackCollection.root"
 elif [ $2 -eq 2 ]
 then 
-    trackfile="../../../DataFlow_input/simdataTree_PixelTestBoard2_RUN$(printf %06d $1).root"
+    trackfile="../../../DataFlow_input/Try7_PixelTestBoard2_TrackCollection.root"
 else 
     echo INVALID telescope number!!!  
     exit
@@ -75,10 +75,10 @@ then
     echo "Token latency: " $origTokLat
 elif [ $2 -eq 2 ]
 then 
-    origWBC=$(./readconfig_tel1.sh $1 WBC_0)
+    origWBC=$(./readconfig_tel2.sh $1 WBC_0)
     echo "WBC: "$origWBC
     
-    origTokLat=$(./readconfig_tel1.sh $1 trig_patt.token_latency)
+    origTokLat=$(./readconfig_tel2.sh $1 trig_patt.token_latency)
     echo "Token latency: " $origTokLat
 else 
     echo INVALID telescope number!!!  
@@ -160,6 +160,14 @@ then
     sed -i "/^[^#]/ s%.*TRIGGER_BUCKET.*%        TRIGGER_BUCKET = $6 %" $tempfile3
 fi
 
+#we need to pick up the right QIE file
+
+echo "Setting QIE path to $qiefile"
+sed -i "/^[^#]/ s%.*QIE_FILENAME.*%        QIE_FILENAME = $qiefile %" $tempfile3
+
+
+
+
 #readback WBC, TKDEL and TRBUCK from file
 WBC=$(awk '!/^#/ && / WBC /{print $3}' $tempfile3)
 echo "WBC from file:" $WBC
@@ -201,7 +209,6 @@ output="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_R
 numberRocs=8
 
 ../../../dataflow2lcio/dataflow2lcio $treefile $output $numberRocs
-
 
 
 transparentoutput="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT.slcio"
