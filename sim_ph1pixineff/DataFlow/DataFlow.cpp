@@ -86,8 +86,8 @@ int main(int argc, char **argv)
 	////////////PROCESSING EVENT FROM PREVIOUS BUNCH CROSSING ///////////////
 	/////////////////////////////////////////////////////////////////////////
 
-
-	
+       //////////       ///do I actually need this part???
+       
 	//all clusters
 	event.clusterize( false );
 	//only efficient clusters
@@ -140,10 +140,7 @@ int main(int argc, char **argv)
 	if(WriteHisto){
 	  for(int i=0; i<NUMBER_OF_TELESCOPES; i++)    FillHisto(event.hits[i], old_trig);
 	}
-		
-// 	if(event.trigger && SAVE_TREE){
-// 		for(int i=MIN_MOD-1; i<MAX_MOD; i++)    saveHits(&event.hits[i]);		    
-// 	}
+	////////////////////////////////////////		
 	iTB=Testboards.begin();
 	for(; iTB!=Testboards.end(); iTB++) iTB->AddHits(event);  // add hits to telescope
 
@@ -204,56 +201,65 @@ int main(int argc, char **argv)
       }
      bucketcounter++;
      eventToProcess.New(clk,0);
-     EventReader.ReadEvent(eventToProcess);		                 // read hits from input file(s)
-     //       cout<<"eventToProcess.hits[MIN_MOD-1].size()="<<eventToProcess.hits[MIN_MOD-1].size()<<endl;
+     EventReader.ReadEvent(eventToProcess);		                        // read hits from input file(s)
+
      int nHits=eventToProcess.hits[0].size();
      double * hPhase= new double[nHits];
-     for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}
-     for (int j=0; j<NUMBER_OF_TELESCOPES; j++){					//Sort in BC from phase
+     if(PIXELTIMING)
+       {
+	 for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}             // phase = phase between fermi and LHC clk
+       }    
+     else
+       {
+	 for(int i=0; i<nHits; i++){hPhase[i]=phase+0;} 
+       }
+     // phase = phase between fermi and LHC clk
+     for (int j=0; j<NUMBER_OF_TELESCOPES; j++){			        //Sort in BC from phase
        int nHitsToProcess = nHits;
        for(int i=nHits-1; i>-1; i--){
-		    double hp = hPhase[i]+j*DET_SPACING*1./29.98;
-		    double ep = phase+j*DET_SPACING*1./29.98;
-		    int BC_sort=Testboards[0].GetBC(hp);
-		    if(BC_sort==0){
-			eventToProcess.hits[j][i].phase=hp+12.5;				//Save phase for hit
-			eventToProcess.hits[j][i].evtPhase=ep+12.5;
-			eventToProcess.hits[j][i].timeStamp=event.clock;
-			eventToProcess.hits[j][i].trigger=event.trigger;
-			event.hits[j].push_back(eventToProcess.hits[j][i]);			//Change phase and move to next BC
-			eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
-
-		    }
-		    else if(BC_sort==1){
-			    eventToProcess.hits[j][i].phase=hp-12.5;
-			    eventToProcess.hits[j][i].evtPhase=ep-12.5;
-			    nextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next BC
-			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
-		    }
-		    else if(BC_sort==2){
-			    eventToProcess.hits[j][i].phase=hp-37.5;
-			    eventToProcess.hits[j][i].evtPhase=ep-37.5;
-			    nextNextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next/next BC
-			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
-		    }
-		    else{
-			
-			    cerr<<"Bad event #BC = "<<BC_sort<<" ignored"<<endl;   
-			    eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
-		    }
-	}
-      }
-      delete hPhase;
+	 double hp = hPhase[i]+j*DET_SPACING*1./29.98;                          //hit phase // DET_SPACING in cm
+	                                                                        // 1./29.98 is the time light needs to travel 1cm
+	 double ep = phase+j*DET_SPACING*1./29.98;                              //event phase  
+	 int BC_sort=Testboards[0].GetBC(hp);
+	 if(BC_sort==0){
+	   eventToProcess.hits[j][i].phase=hp+12.5;				//Save phase for hit
+	   eventToProcess.hits[j][i].evtPhase=ep+12.5;
+	   eventToProcess.hits[j][i].timeStamp=event.clock;
+	   eventToProcess.hits[j][i].trigger=event.trigger;
+	   event.hits[j].push_back(eventToProcess.hits[j][i]);			//Change phase and move to next BC
+	   eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
+	   
+	 }
+	 else if(BC_sort==1){
+	   eventToProcess.hits[j][i].phase=hp-12.5;
+	   eventToProcess.hits[j][i].evtPhase=ep-12.5;
+	   nextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next BC
+	   eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
+	 }
+	 else if(BC_sort==2){
+	   eventToProcess.hits[j][i].phase=hp-37.5;
+	   eventToProcess.hits[j][i].evtPhase=ep-37.5;
+	   nextNextEvent->hits[j].push_back(eventToProcess.hits[j][i]);		//Change phase and move to next/next BC
+	   eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
+	 }
+	 else{
+	   
+	   cerr<<"Bad event #BC = "<<BC_sort<<" ignored"<<endl;   
+	   eventToProcess.hits[j].erase(eventToProcess.hits[j].begin()+i);
+	 }
+       }
+     }
+     delete hPhase;
      // Move clock
      phase+=18.8;
-      if(phase>25){
-	newBC=true;
-	phase-=25;
-      }
-      else{
-	newBC=false;
-	clk--;
-      }
+     if(phase>25){
+       newBC=true;
+       phase-=25;
+     }
+     else{
+       newBC=false;
+       clk--;
+     }
    }					       	                                // end of main loop
    if(SAVE_TREE)endSave();
 // *****************************************************************************************************
@@ -339,35 +345,6 @@ int main(int argc, char **argv)
 
 void Init(bool* EmptyBC)
 {
-	int PSbatch[]={0,80,
-			190,270,350,
-			460, 540, 620, 700,
-			811, 891, 971,
-			1081, 1161, 1241,
-			1351, 1431,  1511, 1591,
-			1702, 1782, 1862,
-			1972, 2052, 2132,
-			2242, 2322, 2402, 2482,
-			2593, 2673, 2753,
-			2863, 2943, 3023,
-			3133, 3213, 3293, 3373
-	};
-
-	if ( ALL_BUNCHES_FILLED == 1 )
-	  for(int i=1; i<3564; i++) EmptyBC[i]=false;
-	else
-	  {
-	    for(int i=0; i<3564; i++) EmptyBC[i]=true;
-	    
-	    for(int j=0; j<39; j++) {
-	      for(int i=0; i<72; i++) {
-		EmptyBC[PSbatch[j]+i]=false;
-	      }
-	    }
-	  }
-	int j=BUNCH_SPACING/25;
-	for(int i=1; i<3564; i++) if( (i%j) !=0) EmptyBC[i]=true;
-
    if(WriteHisto) {
       histoFile = new TFile(HistoFileName,"RECREATE");
       h1=new TH1I("px_per_mod","Pixels per hit module",401,-0.5,400.5);	
@@ -484,6 +461,9 @@ void ReadSettings(char* fileName)
   TRIGGER_RATE = 100;                 // L1 trigger rate in kHz
   BUNCH_SPACING = 25;                 // 25ns bunch mode
   DETECTOR = BPIX;                    // either 'BPIX' or 'FPIX'
+
+  PIXELTIMING = true;
+
   //
   // DAQ, telescope and ROC settings
   //
@@ -600,6 +580,11 @@ void ReadSettings(char* fileName)
 	WriteHisto=true;
 	continue;
       }
+      if(Parameter=="PIXELTIMING"){
+	PIXELTIMING=atoi(Value.c_str());
+	continue;
+      }
+
       else {cout<<"Error: Undefined parameter "<<Parameter<<endl;
 	exit(0);
       }
