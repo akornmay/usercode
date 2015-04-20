@@ -61,7 +61,7 @@ typedef std::vector<pxhit>::iterator hit_iterator;
 class Event 
 {
 public:
-   hit_vector hits[4];
+  hit_vector hits[4];                                                   //the size of this array is still a remenant of the 4-Layer pixel detector simulation
    std::vector< std::vector< pxhit> > clustersall;
    std::vector< std::vector< pxhit> > clustersafter;
    long clock;
