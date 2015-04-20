@@ -37,8 +37,8 @@ std::string SignalFileName;
 std::list<std::string> MinBiasFileNames;
 bool CreatePileUp;
 int BUNCH_SPACING;
-int ALL_BUNCHES_FILLED;
 
+bool PIXELTIMING;
 double PIX_SIGMA;				//Spread of pixel clock (in ns)
 double DET_SPACING;				//distance between det for phase assignment
 
