@@ -5,7 +5,7 @@
 #include "TH1I.h"
 #include "TH2I.h"
 
-extern TH1I *DBSize, *TSSize;
+extern TH1I *DBSize, *TSSize, *ineffhits;
 
 using namespace std;
 
@@ -26,7 +26,6 @@ void DoubleColumn::Init(int i, int roc, long *bx)
    n_reset=0;
    lastPixelReadoutRow = -1;
    TS.Reset();
-   counter = 0;
    hits.clear();
    pendinghits.clear();
 }
@@ -35,33 +34,68 @@ void DoubleColumn::AddHit(pxhit &hit)
 {
    stat.total_hits++;
    if(n_reset==0 && RO_Mode) {
-      stat.ro_Wait++;
-      return;
+     //printf("FILL: n_reset==0 && RO_Mode +1 \n" );
+     ineffhits->Fill( hit.mycol , hit.myrow );
+     hit.ineff = true;
+     hit.inefftype = 1; // 1 = ro_Wait
+     stat.inefficient_hits++;
+     stat.ro_Wait++;
+     return;
    }
+
+   if (!phaseOK(hit.phase)){
+     stat.badPhase++;
+     stat.inefficient_hits++;
+     return;
+   }
+
    pixiter iHit;
    for(iHit=hits.begin(); iHit!=hits.end(); iHit++){
       if(iHit->row==hit.row) {                   // pixel overwrite
 	stat.px_overwrite++;
+	ineffhits->Fill( hit.mycol , hit.myrow );
+	//printf("FILL: iHit->row==hit.row \n");
+	hit.ineff = true;
+	hit.inefftype = 2; // 1 = ro_Wait, 2 = px_overwrite
+	stat.inefficient_hits++;
 	return;
       }
    }
    for(iHit=pendinghits.begin(); iHit!=pendinghits.end(); iHit++){
       if(iHit->row==hit.row) {
 	//	stat.px_overwrite++;                    // pixel overwrite
+	ineffhits->Fill( hit.mycol , hit.myrow );
+	hit.ineff = true;
+	//printf("FILL: iHit=pendinghits.begin \n");
 	return;             
-       }
+      }
    }
    if(DB_Full) {                                 // book keeping only
      stat.DB_overflow++;
+     ineffhits->Fill( hit.mycol , hit.myrow );
+     hit.ineff = true;
+     hit.inefftype = 3; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow
+     //printf("FILL: DB_Full \n");
+     stat.inefficient_hits++;
      return;
    }
    if(n_reset>0) {                               // book keeping only
       stat.ro_Reset++;
+      ineffhits->Fill( hit.mycol , hit.myrow );
+      hit.ineff = true;
+      hit.inefftype = 4; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset
+      //printf("FILL: stat.ro_Reset +1 [%i,%i]\n" , hit.mycol , hit.myrow );
+      stat.inefficient_hits++;      
       return;
    }
    if(TS_Full) {                                 // book keeping
       stat.TS_overflow++;
       pendinghits.push_back(hit);                // buffer full, cannot set timestamp yet
+      hit.ineff = true;
+      hit.inefftype = 5; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow
+      ineffhits->Fill( hit.mycol , hit.myrow );
+      //printf("FILL: TS_Full \n");
+      stat.inefficient_hits++;      
       return;
    }
 
@@ -77,6 +111,7 @@ void DoubleColumn::AddHit(pxhit &hit)
          iHit->wrongTS=true;
          iHit->CD_Select=CD_Select;
          hits.push_back((*iHit));
+	 stat.hits_seen++;
          iHit=pendinghits.erase(iHit);
       }
    }
@@ -87,11 +122,17 @@ void DoubleColumn::AddHit(pxhit &hit)
       hit.trigger=wtg;
       hit.wrongTS=true;
       hit.CD_Select=TrueCD;
+      hit.ineff = true;
+      hit.inefftype = 6; // 1 = ro_Wait, 2 = px_overwrite , 3 = DB_overflow, 4 = ro_Reset, 5 = TS_overflow, 6 = dcol_busy
+      ineffhits->Fill( hit.mycol , hit.myrow );
+      stat.inefficient_hits++;
+      //     printf("FILL: dcol_busy \n");
    } else {
-      hit.wrongTS=false;                         // everything correct
-      hit.CD_Select=CD_Select;                   // finally insert hit into pixel array
+     hit.wrongTS=false;                         // everything correct
+     hit.CD_Select=CD_Select;                   // finally insert hit into pixel array
    }
    hits.push_back(hit);
+   stat.hits_seen++;
    sorthitsbyrow();
 
 }
@@ -183,7 +224,6 @@ void DoubleColumn::Clock()
    if(CD_Active){                                // intimeStamps.Initserts hit into DB and deletes it from px array
      performReadoutDelay();
    } else if(hits.size()>0) {
-     //     cout << "Found new hits" << endl;
       CD_Active=true;
       CD_Status^=0x01;
       pixelReadoutTimer = 0;
@@ -206,13 +246,9 @@ void DoubleColumn::Clock()
      }
    }
    
-   
-
-
    DB_Full = DB.IsFull();                        // initiate reset if data buffer full
    if(DB_Full)
      {
-       //std::cout << "DATA BUFFER FULL," << *clk << "sending reset in col  " << Id << " total number of DB full " << ++counter<< std::endl;
        n_reset=reset_bx;
      }
    TS_Full = TS.IsFull();                        // block column if TS buffer full
@@ -221,21 +257,28 @@ void DoubleColumn::Clock()
 
 void DoubleColumn::Reset()
 {
-  counter++;
    TS.Reset();
    int nPix=DB.Reset();                          // number of lost hits in data buffer and pixel array
-   //   std::cout << "Reset: " << nPix << "from buffer @" << counter << std::endl;
+   stat.inefficient_hits+=nPix;
    for(pixlist::iterator iHit=hits.begin(); iHit!=hits.end(); iHit++) {
-     if(!iHit->wrongTS) nPix++;
+     if(!iHit->wrongTS)
+       {
+	 iHit->ineff = true;
+	 ineffhits->Fill( iHit->mycol , iHit->myrow );
+	 //	  printf("FILL: DoubleColumn::Reset !iHit->wrongTS , [%i,%i]\n" , iHit->mycol , iHit->myrow );
+	 nPix++;
+       }
    }
    hits.clear();
    pendinghits.clear();
-   lastPixelReadoutRow = -1;
    if(RO_Mode) {
      stat.ro_Reset += nPix;
    } else {
      stat.DB_overflow+=nPix;
    }
+
+   lastPixelReadoutRow = -1;
+
    NewEvent = true;
 
    DB_Full = false;
@@ -248,19 +291,16 @@ void DoubleColumn::Reset()
 
 bool DoubleColumn::Readout(long timeStamp, pxhit &hit)
 {
-  //  if(RO_Mode) {cout << "RO MODE but TS do not match " << endl;} 
-  //if(RO_TS==timeStamp) {cout << "TS match but no RO mode " << endl;} 
-  
-  //cout << "RO mode is " << RO_Mode <<  "RO_TS is " << RO_TS << ": TimeStamp " << timeStamp << endl;
    if(RO_Mode && (RO_TS==timeStamp)){
-      if(DB.Readout(timeStamp, hit)) return true;
+      if(DB.Readout(timeStamp, hit))
+	{
+	  saveHit(&hit);
+	  return true;
+	}
       else {
-         n_reset= reset_bx;
-         return false;
+	n_reset= reset_bx;
+	return false;
       }
-   }
-   else {
-
    }
    return false;
 }
@@ -339,6 +379,8 @@ int DataBuffer::Reset()	                         // clears DataBuffer and return
    int ntot=0;
    for(int i=0; i<entries; i++){
      if(!hits[iRead].wrongTS && hits[iRead].timeStamp != 0) {                // counts the number of hits with correct TS in the data buffer 
+       hits[iRead].ineff = true;
+       ineffhits->Fill(hits[iRead].mycol , hits[iRead].myrow );
        ntot++;
      }
      //     cout << "RESET" ;hits[iRead].printhit();
@@ -369,4 +411,12 @@ bool DataBuffer::Readout(long TS, pxhit &hit)
    hit=hits[iRead++];
    if(iRead==DATA_BUFFER_SIZE) iRead=0;
    return true;
+}
+
+
+bool DoubleColumn::phaseOK(double phase){
+  return(1);
+    
+  //return(phase>9.5 && phase<14);
+  
 }

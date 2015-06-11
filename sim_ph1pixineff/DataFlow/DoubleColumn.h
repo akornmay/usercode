@@ -32,7 +32,6 @@ public:
     */ 	
    void InsertTS(long ts){
       TS[iWrite++]=ts;
-      //      cout << "adding new TS " << ts << endl;
       if(iWrite==TS_BUFFER_SIZE) iWrite=0;
       entries++;
    };
@@ -54,7 +53,7 @@ public:
       entries--;
       return ts;
    };
-
+   /** @brief print all time stamps of buffer */
    void printall(){
      cout << "iread i " << iRead << " IWrite is " << iWrite << endl;
      for(int i = 0; i < TS_BUFFER_SIZE; i++)
@@ -216,6 +215,12 @@ public:
     */	
    void Reset();
 
+   /** @brief Checks the phase of the event
+    * 
+    * Returns 1 if phase is between 9.5 and 14 ns, 0 if not.
+    */
+   bool phaseOK(double phase);
+
    pixlist hits;          ///< list of hits in double column waiting for column drain
    pixlist pendinghits;   ///< list of hits in double column with not yet specified time stamp
    DataBuffer DB;         ///< data buffer
@@ -246,8 +251,6 @@ public:
    int nextPixelReadoutRow;
 
    void sorthitsbyrow();
-
-   int counter;
 };
 
 #endif /*DOUBLE_COLUMN_H_*/
