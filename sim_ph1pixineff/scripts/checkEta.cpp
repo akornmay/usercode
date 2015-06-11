@@ -76,10 +76,10 @@ int main(int argc, char *argv[]) {
   //create a new TH2D plot
   //TH2D reducedClustersize("reducedClustersize","Clustersize reduced to 4 pixel cells;um;um",numberBinsX,0.,300.,numberBinsY,0.,200.);
   TProfile2D reducedClustersize("reducedClustersize","Clustersize reduced to 4 pixel cells;um;um",numberBinsX,0.,300.,numberBinsY,0.,200.);
-
+  TH2D hitMap("HitMap","Pixel Hit Map for all ROCs",52,0,52,80,0,80);
   //loop over the tree
 
-  int testROC = 1;
+  int testROC = 0;
   long int tempEvent = -1;
   double tempEnergy, tempX, tempY = -666;
   int clustersize = 1;
@@ -89,15 +89,16 @@ int main(int argc, char *argv[]) {
 
   int counter1 = 0;
   int counter2 = 0;
-  for(testROC = 0; testROC < 8; ++testROC){
+  //  for(testROC = 0; testROC < 8; ++testROC){
   for(int ii = 0; ii < telescope.GetEntries(); ++ii)
     {
-      if(ii%1000 == 0) std::cout << "Event " << ii << std::endl;
+      if(ii%10000 == 0) std::cout << "Event " << ii << std::endl;
 
       telescope.GetEntry(ii);
       // we are only interested in one ROC
       if(roc == testROC)
 	{
+	  if(roc!= -1) hitMap.Fill(col,row);
 	  if(event == tempEvent)
 	    {
 	      //do something if it is the same event
@@ -128,19 +129,25 @@ int main(int argc, char *argv[]) {
 
 	}//if testROC
     }//for loop over tree
-  }//for loop over testROC
+  //}//for loop over testROC
 
   //  reducedClustersize.Reset();
   //reducedClustersize.SetBinContent(150,100,10);
   //reducedClustersize.SetBinEntries(reducedClustersize.GetBin(150,100),1);
 
   reducedClustersize.Write();
-
+  hitMap.Write();
   //let's try do do a gaussian smearing
 
   //sigmas
   double sX =  4.7;
   double sY =  4.7;
+  //double sX =  43.3;
+  //double sY =  28.9;
+  //double sX =  20.3;
+  //double sY =  15.9;
+  //double sX =  10;
+  //double sY =  7;
 
   int sigmas = 5;
 

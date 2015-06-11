@@ -189,11 +189,11 @@ echo "Trigger bucket from file:" $TRBUCK
 
 
 
-outfile="../../../DataFlow_output/dataflowSUMMARY_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+outfile="../../../DataFlow_output/dataflowSUMMARY_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_noPhase.root"
 echo $outfile
-treefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).root"
+treefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_noPhase.root"
 echo $treefile
-transparenttreefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT.root"
+transparenttreefile="../../../DataFlow_output/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_noPhase_TRANSPARENT.root"
 echo $transparenttreefile
 
 
@@ -215,13 +215,13 @@ echo "Sourcing LCIO environment"
 source ../../../dataflow2lcio/env.sh
 
 
-output="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK).slcio"
+output="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_noPhase.slcio"
 numberRocs=8
 
 ../../../dataflow2lcio/dataflow2lcio $treefile $output $numberRocs
+q
 
-
-transparentoutput="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT.slcio"
+transparentoutput="../../../DataFlow_LCIO/dataflowPIXTREE_PixelTestBoard$(printf %01d $2)_RUN$(printf %05d $1)_WBC$(printf %03d $WBC)_TKDEL$(printf %03d $TKDEL)_TRBUCK$(printf %03d $TRBUCK)_TRANSPARENT_noPhase.slcio"
 
 ../../../dataflow2lcio/dataflow2lcio $transparenttreefile $transparentoutput $numberRocs
 
