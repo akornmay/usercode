@@ -68,9 +68,9 @@ int main(int argc, char **argv)
    
    
    for(clk=1; clk< MAX_EVENT; clk++){
-     if(clk<50000 && !(clk %5000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-     else if(clk<100000 && !(clk %10000)) cout <<"Processing event number "<< clk << " ....."<<endl;
-     else if(!(clk %50000)) cout <<"Processing event number "<< clk <<" ("<<clk*100./MAX_EVENT<<"%) ....."<<endl;
+     if(ntrig<1000 && !(ntrig %100) && clk%588 == 0) cout <<"Processing trigger number "<< ntrig << " ....."<<endl;
+     else if(ntrig<10000 && !(ntrig %1000) && clk%588 == 0) cout <<"Processing trigger number "<< ntrig << " ....."<<endl;
+     else if(!(ntrig %10000) && clk%588 == 0) cout <<"Processing trigger number "<< ntrig <<" ("<<ntrig*100./MAX_TRIGGER<<"%) ....."<<endl;
      if(ntrig == MAX_TRIGGER)
        {
 	 cout<<"Maximum number of triggers reached. Terminating Simulation!" << endl;
