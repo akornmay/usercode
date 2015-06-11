@@ -6,15 +6,15 @@
 
 typedef std::list<pxhit> pixlist;
 typedef std::list<pxhit>::iterator pixiter;
+typedef std::list<pxhit>::const_iterator pix_const_iter;
 
-enum {CD_SELECT_A=0, CD_SELECT_B};
+enum {CD_SELECT_A=0, CD_SELECT_B=1};
 
 class TSlist
 {
 public:
 
 };
-
 
 
 /** \class TimeStamp
@@ -32,6 +32,7 @@ public:
     */ 	
    void InsertTS(long ts){
       TS[iWrite++]=ts;
+      //      cout << "adding new TS " << ts << endl;
       if(iWrite==TS_BUFFER_SIZE) iWrite=0;
       entries++;
    };
@@ -48,11 +49,21 @@ public:
    long Expiration(long &clk){	 // checks expiration of time stamps. Return TS if expired, 0 otherwise
       long ts=TS[iRead];
       if(ts!=clk-WBC) return 0;
-      TS[iRead++]=0;
+      TS[iRead++]=0; 
       if(iRead==TS_BUFFER_SIZE) iRead=0;
       entries--;
       return ts;
    };
+
+   void printall(){
+     cout << "iread i " << iRead << " IWrite is " << iWrite << endl;
+     for(int i = 0; i < TS_BUFFER_SIZE; i++)
+       {
+	 cout << TS[i] << " | " ;
+       }
+     cout << endl;
+   }
+
 
    /** @brief constructor */
    TimeStamp()  { Reset(); };
@@ -60,7 +71,7 @@ public:
    /** @brief Clear time stamp buffer */	
    void Reset(){
       iWrite=iRead=entries=0;
-      for(int i=0; i<TS_BUFFER_SIZE; i++) TS[i]=0;
+      for(int i=0; i<TS_BUFFER_SIZE; i++) TS[i]=-999;
    }
 
    /** @brief Check if time stamp buffer is full */	
@@ -108,7 +119,7 @@ public:
    /** @brief Deleting hits from the data buffer 
     * 
     * @param TimeStamp : time stamp which has expired
-    * @return int : number of hits corresponding to TimeStamp with L1A
+    * @return int : number of hits corresponding to TimeStamp with L1A //TODO
     * 
     * Clear all hits in the data buffer with given time stamp 
     * return number of hits to be read out
@@ -185,6 +196,8 @@ public:
     * Do the column drain. Copy pixel hit into data buffer and delete it from pixel array
     */
    bool GetNextPxHit();			     // receive next hit from column drain
+   bool SpyNextPxHit();			     // receive next hit from column drain
+   void performReadoutDelay() ;
 	
    /** @brief Set time stamp
     * 
@@ -194,8 +207,7 @@ public:
     * Insert the time stamp timeStamp into TS buffer. Checks if column drain 
     * is busy (3rd hit) or double column is blocked (TS or DB full)
     */	
-   
-    int SetTS(long &timeStamp, bool &tg, int &cd);
+   int SetTS(long &timeStamp, bool &tg, int &cd);
 	
    /** @brief Reset the double column
     *  
@@ -203,16 +215,6 @@ public:
     * Reset double column logic.
     */	
    void Reset();
- 
-   /** @brief Checks the phase of the event
-    * 
-    * Returns 1 if phase is between 9.5 and 14 ns, 0 if not.
-    */
-   bool phaseOK(double phase);
-      
-   /** @brief Writes hit to tree
-    */
-   void writeToTree();
 
    pixlist hits;          ///< list of hits in double column waiting for column drain
    pixlist pendinghits;   ///< list of hits in double column with not yet specified time stamp
@@ -238,6 +240,14 @@ public:
    long *clk;             ///< Bunch crossing counter
    statistics stat;       ///< Structure doing the book keeping
 
+   int getPixelReadoutDelay();
+   int pixelReadoutTimer;
+   int lastPixelReadoutRow;
+   int nextPixelReadoutRow;
+
+   void sorthitsbyrow();
+
+   int counter;
 };
 
 #endif /*DOUBLE_COLUMN_H_*/

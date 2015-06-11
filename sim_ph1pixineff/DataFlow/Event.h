@@ -47,6 +47,8 @@ class pxhit {
     return (aa<bb);
   };
   void clear() { timeStamp=0;} ;
+  void init() { timeStamp=-1; wrongTS = true; row = -17;} ;
+
   pxhit()
     {
       status=7;
