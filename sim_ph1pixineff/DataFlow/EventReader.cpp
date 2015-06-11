@@ -63,6 +63,10 @@ void TelescopeReader::InitQIE(std::string &name)
       std::cout << "File \""<<name<<"\" not found."<< std::endl;
       exit(0);
    }
+   else
+     {
+       std::cout << "Done" << std::endl;
+     }
 
    char title[128];
    sprintf(title,"tree_QIE");
@@ -180,6 +184,11 @@ void TelescopeHits::fillEventLibrary()
       HitTree->GetEntry(ii);
       tempEventNo = tree_event;
       //std::cout << "ii " << ii << endl;
+      if(adc == -1)
+	{
+	  ++ii;
+	  continue;
+	}
 
       hit_vector& ahitVector = myEventLibrary[mapkey];
 
