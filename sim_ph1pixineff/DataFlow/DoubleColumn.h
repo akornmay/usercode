@@ -125,6 +125,9 @@ public:
     */ 
    bool L1_verify(long TimeStamp);
 
+   /** @brief Checks the DB for hits with expired TS and removes them */	
+   int Expiration(long TS);
+
    /** @brief Get the number of hits in the data buffer */	
    int GetSize() { return entries;};
 	

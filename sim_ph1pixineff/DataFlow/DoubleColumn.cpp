@@ -169,7 +169,7 @@ int DoubleColumn::getPixelReadoutDelay() {
   else
     {
       int distance = nextPixelReadoutRow - lastPixelReadoutRow;
-      if(distance > cd_token_pix_per_clk)
+      if(distance >= 0)
 	{
 	  pixelWait += distance/cd_token_pix_per_clk ;
 	}
@@ -240,6 +240,7 @@ void DoubleColumn::Clock()
 
    long timeStamp=TS.Expiration(*clk);           // returns TS if expired, 0 otherwise
    if(timeStamp>0){
+     int exp = DB.Expiration(timeStamp);
      if(DB.L1_verify(timeStamp)){               // clear hits if no trigger, mark for read out otherwise
        RO_Mode=true;                           // set readout mode and store time stamp
        RO_TS = timeStamp;
@@ -404,6 +405,23 @@ bool DataBuffer::L1_verify(long TS)              // checks trigger and marks the
   }
   return false;
 }
+
+
+int DataBuffer::Expiration(long TS)              // checks trigger and marks them for r/o
+{                                                // or clears them from the data buffer
+  int exp = 0;
+  while(hits[iRead].timeStamp < TS){
+    //cout << "expired hit: " ; hits[iRead].printhit();
+    hits[iRead++].clear();
+    entries--;
+    exp++;
+    if(iRead==DATA_BUFFER_SIZE) iRead=0;
+  }
+  
+  return exp;
+}
+
+
 
 bool DataBuffer::Readout(long TS, pxhit &hit)
 {
