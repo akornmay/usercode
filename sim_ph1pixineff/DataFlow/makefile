@@ -2,8 +2,8 @@
 
 CC = g++
 
-CFLAGS  = -g -Wno-deprecated
-#CFLAGS  = -O3 -Wno-deprecated -funroll-loops 
+#CFLAGS  = -g -Wno-deprecated
+CFLAGS  = -O3 -Wno-deprecated -funroll-loops 
 LDFLAGS = -L/usr/local/lib
 LDFLAGS+=-L/usr/lib
 
