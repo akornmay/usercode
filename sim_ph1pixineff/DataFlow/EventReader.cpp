@@ -201,6 +201,7 @@ void TelescopeHits::fillEventLibrary()
 	      hit.vcal=vcal;
 	      hit.roc=roc;
 	      hit.row=row + (col%2) * 80;
+	      hit.row= (col%2 == 0 ? row : 159 - row);
 	      hit.dcol=col/2;
 	      hit.myrow = row;
 	      hit.mycol = col;
