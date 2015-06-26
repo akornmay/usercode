@@ -162,7 +162,6 @@ void TelescopeHits::GetHits(Event &event, int nEvents)
 	      event.hits[0][kk].trigger=event.trigger;
 	      event.hits[0][kk].flux = flux;
 	      allhits->Fill((int)event.hits[0][kk].mycol,(int)event.hits[0][kk].myrow);
-	      //hit.printhit();
 	      //	  printf("Hit: Event %i adc %f roc %i (%i|%i)\n",event_nr,adc,roc,col,row);
 	    }
 	}
@@ -183,12 +182,11 @@ void TelescopeHits::fillEventLibrary()
     {
       HitTree->GetEntry(ii);
       tempEventNo = tree_event;
-      //std::cout << "ii " << ii << endl;
       if(adc == -1)
-	{
-	  ++ii;
-	  continue;
-	}
+      {
+        ++ii;
+        continue;
+      }
 
       hit_vector& ahitVector = myEventLibrary[mapkey];
 
@@ -202,7 +200,7 @@ void TelescopeHits::fillEventLibrary()
 	      hit.pulseHeight=adc;
 	      hit.vcal=vcal;
 	      hit.roc=roc;
-	      hit.row=row;
+	      hit.row=row + (col%2) * 80;
 	      hit.dcol=col/2;
 	      hit.myrow = row;
 	      hit.mycol = col;
@@ -212,15 +210,14 @@ void TelescopeHits::fillEventLibrary()
 	      //and push it into our hitVector 
 	      ahitVector.push_back(hit);
 	      //and go to the next event
-	    }
+	      }
 	  
 	  ++ii;
-	  if(ii == N_Entries) break;
+	  if(ii >= N_Entries) break;
 	  HitTree->GetEntry(ii);
 	}
 
       ++mapkey;
-      //std::cout << "mapkey " << mapkey << std::endl;
     }
 
 
@@ -239,7 +236,6 @@ void TelescopeHits::fillEventLibrary()
     } 
 
   */
-
 }
 
 
