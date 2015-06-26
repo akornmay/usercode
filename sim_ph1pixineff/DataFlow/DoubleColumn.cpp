@@ -369,7 +369,7 @@ int DoubleColumn::SetTS(long &timeStamp, bool &tg, int &cd)          // returns 
 DataBuffer::DataBuffer()
 {
    for(int i=0; i<DATA_BUFFER_SIZE; i++) {
-      hits[i].init();
+      hits[i].clear();
    }
    iWrite=iRead=entries=0;
 }
@@ -427,6 +427,7 @@ bool DataBuffer::Readout(long TS, pxhit &hit)
 {
    if(hits[iRead].timeStamp!=TS) return false;
    hit=hits[iRead++];
+   hits[iRead -1].clear();
    if(iRead==DATA_BUFFER_SIZE) iRead=0;
    return true;
 }
