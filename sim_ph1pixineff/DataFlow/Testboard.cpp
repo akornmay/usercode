@@ -253,6 +253,8 @@ cout << endl;
 
 int Testboard::GetBC(double phase)
 {
+    if(PIXELTIMING == 0) return 0;
+
     int toReturn=0;
     if(phase<0){
 	phase+=25;
