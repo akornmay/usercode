@@ -207,7 +207,9 @@ int main(int argc, char **argv)
      double * hPhase= new double[nHits];
      if(PIXELTIMING)
        {
-	 for(int i=0; i<nHits; i++){hPhase[i]=phase+rndm.Gaus(0,1.88);}             // phase = phase between fermi and LHC clk
+	 double buckettiming = rndm.Gaus(0,1.88);                              // The particles in the bunch have a gaussian time distribution, should be trackwise but
+	                                                                       // trackinformation is lost from Geant4 simulation
+	 for(int i=0; i<nHits; i++){hPhase[i]=phase+buckettiming;}             // phase = phase between fermi and LHC clk
        }    
      else
        {
@@ -217,9 +219,9 @@ int main(int argc, char **argv)
      for (int j=0; j<NUMBER_OF_TELESCOPES; j++){			        //Sort in BC from phase
        int nHitsToProcess = nHits;
        for(int i=nHits-1; i>-1; i--){
-	 double hp = hPhase[i]+j*DET_SPACING*1./29.98;                          //hit phase // DET_SPACING in cm
-	                                                                        // 1./29.98 is the time light needs to travel 1cm
-	 double ep = phase+j*DET_SPACING*1./29.98;                              //event phase  
+	 double hp = hPhase[i]+eventToProcess.hits[j][i].roc*DET_SPACING*1./29.98; // the hits arrive at a different time on each ROC//hit phase // DET_SPACING in cm
+	                                                                        // 1./29.98 is the time light needs to travel 1cm                                                                       // 1./29.98 is the time light needs to travel 1cm
+	 double ep = phase;                              //event phase  
 	 int BC_sort=Testboards[0].GetBC(hp);
 	 if(BC_sort==0){
 	   eventToProcess.hits[j][i].phase=hp+12.5;				//Save phase for hit
